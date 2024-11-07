@@ -26,23 +26,6 @@ void ClientHandler::initialize() {
 
 void ClientHandler::loop() {}
 
-void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
-
-void ClientCallback::onDisconnect(BLEClient *client) {
-    connected = false;
-}
-
-//Triggered for each advertised ble device found during an active scan. bascially what do to when
-// you encounter a new device
-void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
-    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
-        BLEDevice::getScan()->stop();
-        server = new BLEAdvertisedDevice(advertisedDevice);
-        attemptConnect = true;
-        attemptScan = true;
-    }
-}
-
 bool ClientHandler::connectToServer() {
     // This creates a client object and returns a pointer
     BLEClient *client = BLEDevice::createClient();
@@ -52,7 +35,7 @@ bool ClientHandler::connectToServer() {
     client->setClientCallbacks(new ClientCallback());
 
     //Attempts to establish a connection to server. If the conneciton fails connect will return
-    // true the program will enter the loop and return false
+    // false negated to true and the program will enter the loop and return false
     if (!client->connect(server)) {
         return false;
     }
@@ -85,7 +68,8 @@ bool ClientHandler::connectToServer() {
 
     // Checks if notification operations are allowed
     if (IMUCharacteristic->canNotify()) {
-        // If there is a notificaiton it invokes the notifu callback (aka read the quaternion shit)
+        // If there is a notificaiton that says hey there is new data, it invokes the notifu
+        // callback (aka read the quaternion shit)
         IMUCharacteristic->registerForNotify(notifyCallback);
     }
 
@@ -104,5 +88,43 @@ length, bool isNotify) {
     }
 }
 
+void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
+
+void ClientCallback::onDisconnect(BLEClient *client) {
+    connected = false;
+}
+
+//Triggered for each advertised ble device found during an active scan. bascially what do to when
+// you encounter a new device
+void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
+    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
+        BLEDevice::getScan()->stop();
+        server = new BLEAdvertisedDevice(advertisedDevice);
+        attemptConnect = true;
+        attemptScan = true;
+    }
+}
+
+
+
 // maybe have the q's be member variables and then have access methods for the rest of the
 // program to access the stuff
+
+/*Step-by-Step Flow:
+Connecting to the server:
+
+Your client connects to the BLE server and checks if the desired characteristic (IMU) supports notifications.
+Calling registerForNotify:
+
+The registerForNotify method registers your client to receive notifications for the IMU characteristic.
+If notifications are enabled, it writes the correct value to the 0x2902 descriptor to tell the server to send notifications when the data changes.
+Receiving a Notification:
+
+When the IMU characteristic changes on the server (e.g., new sensor data), the server sends a notification to your client.
+The BLE stack on your ESP32 receives this notification and triggers the notifyCallback method you provided.
+Callback Execution:
+
+Inside notifyCallback, you extract the quaternion values (represented as floats) from the data array and process them accordingly.
+This is where the actual data handling happens: you can then use the quaternion values (qw, qx, qy, qz) for whatever processing you need, such as sensor fusion or displaying the IMU data.*/
+
+//todo add logging and excpetion saftey

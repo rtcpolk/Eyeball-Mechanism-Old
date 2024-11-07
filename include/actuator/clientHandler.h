@@ -31,12 +31,12 @@ public:
     void loop();
 
 private:
-    static void notifyCallback(BLERemoteCharacteristic *, uint8_t *, size_t, bool);
-
     bool connectToServer();
 
-    friend struct ClientCallback;
-    friend struct AdvertisedDeviceCallback;
+    static void notifyCallback(BLERemoteCharacteristic *, uint8_t *, size_t, bool);
+
+//    friend struct ClientCallback;
+//    friend struct AdvertisedDeviceCallback;
 
     // Member Variables
     BLEUUID serviceUUID;           // The service UUID to connect to
