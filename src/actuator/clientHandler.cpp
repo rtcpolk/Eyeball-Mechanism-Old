@@ -4,27 +4,67 @@
 
 #include "actuator/ClientHandler.h"
 
-ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
-                             const std::string &IMU_CHARACTERISTIC_UUID,
-                             const std::string &CLIENT_NAME)
-        : serviceUUID(SERVICE_UUID), imuCharacteristicUUID(IMU_CHARACTERISTIC_UUID),
-          attemptConnect(false), connected(false), initiateScan(false), server
-                  (nullptr), IMUCharacteristic(nullptr) {
-    // Create the BLE device
-    BLEDevice::init(CLIENT_NAME);
-}
+// Set static inst to null
+ClientHandler *ClientHandler::inst = nullptr;
 
-void ClientHandler::initialize() {
-    // Retrieve a scanner and
+ClientHandler::~ClientHandler() { inst = nullptr; }
+
+ClientHandler *ClientHandler::initialize(const std::string &SERVICE_UUID,
+                                         const std::string &IMU_CHARACTERISTIC_UUID,
+                                         const std::string &DEVICE_NAME) {
+    // Only initialize once
+    if (inst != nullptr) {
+        throw std::runtime_error("ClientHandler::initialize can only be called once");
+    }
+
+    inst = new ClientHandler(SERVICE_UUID,IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+
+    // Retrieve a scanner and...
     BLEScan *scanner = BLEDevice::getScan();
     scanner->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallback());
     scanner->setInterval(SCAN_INTERVAL);
     scanner->setWindow(SCAN_WINDOW);
     scanner->setActiveScan(true);
     scanner->start(SCAN_DURATION, false);
+
+    return inst;
 }
 
-void ClientHandler::loop() {}
+ClientHandler *ClientHandler::instance() {
+    if (inst == nullptr) {
+        throw std::runtime_error("ClientHandler::initialize must be called first");
+    }
+
+    return inst;
+}
+
+void ClientHandler::loop() {
+    if (attemptConnect) {
+        if (connectToServer()) {
+            //we are connected
+        } else {
+            //we are not connected
+        }
+
+        attemptConnect = false;
+    }
+
+    if (connected) {
+        // do stuff once we are connected
+    } else if (initiateScan) {
+        BLEDevice::getScan()->start(0);
+    }
+}
+
+ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
+                             const std::string &IMU_CHARACTERISTIC_UUID,
+                             const std::string &DEVICE_NAME)
+        : serviceUUID(SERVICE_UUID), imuCharacteristicUUID(IMU_CHARACTERISTIC_UUID),
+          attemptConnect(false), connected(false), initiateScan(false), server
+                  (nullptr), IMUCharacteristic(nullptr) {
+    // Create the BLE device
+    BLEDevice::init(DEVICE_NAME);
+}
 
 bool ClientHandler::connectToServer() {
     // This creates a client object and returns a pointer
@@ -77,8 +117,8 @@ bool ClientHandler::connectToServer() {
     return connected;
 }
 
-static void notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, uint8_t *data, size_t
-length, bool isNotify) {
+void ClientHandler::notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, uint8_t
+*data, size_t length, bool isNotify) {
     if (length == 16) {
         float qw, qx, qy, qz;
         memcpy(&qw, &data[0], sizeof(float));
@@ -88,24 +128,22 @@ length, bool isNotify) {
     }
 }
 
-void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
-
-void ClientCallback::onDisconnect(BLEClient *client) {
-    connected = false;
-}
-
-//Triggered for each advertised ble device found during an active scan. bascially what do to when
-// you encounter a new device
-void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
-    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
-        BLEDevice::getScan()->stop();
-        server = new BLEAdvertisedDevice(advertisedDevice);
-        attemptConnect = true;
-        attemptScan = true;
-    }
-}
-
-
+//void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
+//
+//void ClientCallback::onDisconnect(BLEClient *client) {
+//    setConnected(false);
+//}
+//
+////Triggered for each advertised ble device found during an active scan. bascially what do to when
+//// you encounter a new device
+//void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
+//    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
+//        BLEDevice::getScan()->stop();
+//        server = new BLEAdvertisedDevice(advertisedDevice);
+//        attemptConnect = true;
+//        attemptScan = true;
+//    }
+//}
 
 // maybe have the q's be member variables and then have access methods for the rest of the
 // program to access the stuff

@@ -34,7 +34,7 @@
  */
 const std::string SERVICE_UUID = "da2aa210-e2ab-4d96-8d94-8536ec5a2728";
 const std::string IMU_CHARACTERISTIC_UUID = "72b9a4be-85fe-4cd5-ae42-f32414542c5a";
-const std::string CLIENT_NAME = "Eyeball Controller";
+const std::string DEVICE_NAME = "Eyeball Controller";
 
 //================================================================================================//
 
@@ -43,7 +43,7 @@ const std::string CLIENT_NAME = "Eyeball Controller";
  *
  * The variables below are used throughout the main program
  */
-ClientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, CLIENT_NAME); // The client is
+ClientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME); // The client is
 // created and
 // member
 // variables set

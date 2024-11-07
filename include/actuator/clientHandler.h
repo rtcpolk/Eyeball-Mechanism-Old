@@ -9,8 +9,36 @@
 
 class ClientHandler {
 public:
+    // Delete constructor, copy-constructor, and assignment-op
+    ClientHandler() = delete;
+    ClientHandler(const ClientHandler &) = delete;
+    ClientHandler &operator=(const ClientHandler &) = delete;
+
+    // Destructor
+    ~ClientHandler();
+
     /**
-    * @brief Primary Constructor
+     * @brief Initialize the client by creating a BLE device and setting the scanning parameters
+     *
+     * @param SERVICE_UUID - The UUID of the service to connect to
+    * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
+     * @param CLIENT_NAME - The name for the BLE device
+     */
+    static ClientHandler *initialize(const std::string&, const std::string&, const
+    std::string&);
+
+    /**
+     * Get the ClientHandler instance
+     * @return Ptr to the ClientHandler instance
+     */
+    static ClientHandler* instance();
+
+
+    void loop();
+
+private:
+    /**
+    * @brief Private constructor for the singleton pattern
      *
     * @param SERVICE_UUID - The UUID of the service to connect to
     * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
@@ -18,27 +46,14 @@ public:
     */
     ClientHandler(const std::string&, const std::string&, const std::string&);
 
-    // Default copy-constructor, assignment-op, and destructor
-    ClientHandler(const ClientHandler &) = default;
-    ClientHandler &operator=(const ClientHandler &) = default;
-    ~ClientHandler() = default;
 
-    /**
-     * @brief Initialize the client by creating a BLE device and setting the scanning parameters
-     */
-    static void initialize();
-    
-    void loop();
-
-private:
     bool connectToServer();
+
 
     static void notifyCallback(BLERemoteCharacteristic *, uint8_t *, size_t, bool);
 
-//    friend struct ClientCallback;
-//    friend struct AdvertisedDeviceCallback;
-
     // Member Variables
+    static ClientHandler *inst; // Singleton ptr
     BLEUUID serviceUUID;           // The service UUID to connect to
     BLEUUID imuCharacteristicUUID; // The IMU's characteristic UUID
     bool attemptConnect; // If the client should attempt to connect to a server
