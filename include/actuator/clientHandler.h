@@ -7,7 +7,7 @@
 
 #include "BLEDevice.h"
 
-class clientHandler {
+class ClientHandler {
 public:
     /**
     * @brief Primary Constructor
@@ -16,17 +16,19 @@ public:
     * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
      * @param CLIENT_NAME - The name for the BLE device
     */
-    clientHandler(const std::string&, const std::string&, const std::string&);
+    ClientHandler(const std::string&, const std::string&, const std::string&);
 
     // Default copy-constructor, assignment-op, and destructor
-    clientHandler(const clientHandler &) = default;
-    clientHandler &operator=(const clientHandler &) = default;
-    ~clientHandler() = default;
+    ClientHandler(const ClientHandler &) = default;
+    ClientHandler &operator=(const ClientHandler &) = default;
+    ~ClientHandler() = default;
 
     /**
      * @brief Initialize the client by creating a BLE device and setting the scanning parameters
      */
     static void initialize();
+    
+    void loop();
 
 private:
     static void notifyCallback(BLERemoteCharacteristic *, uint8_t *, size_t, bool);

@@ -43,7 +43,8 @@ const std::string CLIENT_NAME = "Eyeball Controller";
  *
  * The variables below are used throughout the main program
  */
-clientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, CLIENT_NAME); // The client is created and
+ClientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, CLIENT_NAME); // The client is
+// created and
 // member
 // variables set
 

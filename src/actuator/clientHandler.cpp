@@ -2,10 +2,11 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 
 
-#include "actuator/clientHandler.h"
+#include "actuator/ClientHandler.h"
 
-clientHandler::clientHandler(const std::string &SERVICE_UUID, const std::string &IMU_CHARACTERISTIC_UUID,
-                    const std::string &CLIENT_NAME)
+ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
+                             const std::string &IMU_CHARACTERISTIC_UUID,
+                             const std::string &CLIENT_NAME)
         : serviceUUID(SERVICE_UUID), imuCharacteristicUUID(IMU_CHARACTERISTIC_UUID),
           attemptConnect(false), connected(false), initiateScan(false), server
                   (nullptr), IMUCharacteristic(nullptr) {
@@ -13,7 +14,7 @@ clientHandler::clientHandler(const std::string &SERVICE_UUID, const std::string 
     BLEDevice::init(CLIENT_NAME);
 }
 
-void clientHandler::initialize() {
+void ClientHandler::initialize() {
     // Retrieve a scanner and
     BLEScan *scanner = BLEDevice::getScan();
     scanner->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallback());
@@ -22,6 +23,8 @@ void clientHandler::initialize() {
     scanner->setActiveScan(true);
     scanner->start(SCAN_DURATION, false);
 }
+
+void ClientHandler::loop() {}
 
 void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
 
@@ -40,7 +43,7 @@ void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
     }
 }
 
-bool clientHandler::connectToServer() {
+bool ClientHandler::connectToServer() {
     // This creates a client object and returns a pointer
     BLEClient *client = BLEDevice::createClient();
 
