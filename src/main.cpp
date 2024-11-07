@@ -1,9 +1,9 @@
-/**
- * @author Robert Polk
- * Last Modified: 11/07/24
- */
+// Author: Robert Polk
+// Copyright (c) 2024 BLINK. All rights reserved.
+// Last Modified:
 
 #include <Arduino.h>
+#include "actuator/clientHandler.h"
 
 //================================================================================================//
 
@@ -43,7 +43,7 @@ const std::string CLIENT_NAME = "Eyeball Controller";
  *
  * The variables below are used throughout the main program
  */
-ClientBLE client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, CLIENT_NAME); // The client is created and
+clientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, CLIENT_NAME); // The client is created and
 // member
 // variables set
 
