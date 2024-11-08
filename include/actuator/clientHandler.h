@@ -8,6 +8,20 @@
 #include "BLEDevice.h"
 #include <BLEAdvertisedDevice.h>
 
+struct ClientCallbacks final : public BLEClientCallbacks {
+    void onConnect(BLEClient*) override;
+
+    void onDisconnect(BLEClient*) override;
+};
+
+struct AdvertisedDeviceCallbacks final : public BLEAdvertisedDeviceCallbacks {
+    AdvertisedDeviceCallbacks();
+    /**
+     * Called for each advertising BLE server.
+     */
+    static void onResult(BLEAdvertisedDevice advertisedDevice);
+};
+
 /**
  * @brief A singleton class to handle everything related to the BLEClient
  */
@@ -98,19 +112,6 @@ private:
     static constexpr int SCAN_INTERVAL = 40; // The interval at which scans are initiated, in ms
     static constexpr int SCAN_WINDOW = 30; // How long each individual scan is, in ms
     static constexpr int SCAN_DURATION = 15; // How long a scan event will run, in s
-};
-
-struct ClientCallbacks final : public BLEClientCallbacks {
-    void onConnect(BLEClient*) override;
-
-    void onDisconnect(BLEClient*) override;
-};
-
-struct AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
-    /**
-     * Called for each advertising BLE server.
-     */
-    void onResult(BLEAdvertisedDevice advertisedDevice);
 };
 
 #endif // CLIENTHANDLER_H

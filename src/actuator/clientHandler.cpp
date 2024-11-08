@@ -4,6 +4,10 @@
 
 #include "actuator/ClientHandler.h"
 
+AdvertisedDeviceCallbacks::AdvertisedDeviceCallbacks() noexcept : BLEAdvertisedDeviceCallbacks() {
+    int apple = 0;
+}
+
 // Set static inst to null
 ClientHandler *ClientHandler::inst = nullptr;
 
@@ -156,21 +160,18 @@ void ClientCallbacks::onDisconnect(BLEClient *client) {
 
 //Triggered for each advertised ble device found during an active scan. bascially what do to when
 // you encounter a new device
-void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice)
-{
-        Serial.print("BLE Advertised Device found: ");
-        Serial.println(advertisedDevice.toString().c_str());
+void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
+    // We have found a device, let us now see if it contains the service we are looking for.
+    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService
+            (ClientHandler::instance()->getServiceUUID())) {
 
-        // We have found a device, let us now see if it contains the service we are looking for.
-        if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
+        BLEDevice::getScan()->stop();
+        ClientHandler::instance()->setServer(new BLEAdvertisedDevice(advertisedDevice));
+        ClientHandler::instance()->setAttemptConnect(true);
+        ClientHandler::instance()->setInitiateScan(true);
 
-            BLEDevice::getScan()->stop();
-            myDevice = new BLEAdvertisedDevice(advertisedDevice);
-            doConnect = true;
-            doScan = true;
-
-        }  // Found our server
-    }  // onResult
+    }  // Found our server
+}  // onResult
 
 // maybe have the q's be member variables and then have access methods for the rest of the
 // program to access the stuff
