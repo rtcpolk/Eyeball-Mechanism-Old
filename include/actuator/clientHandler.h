@@ -19,24 +19,46 @@ public:
 
     /**
      * @brief Initialize the client by creating a BLE device and setting the scanning parameters
-     *
      * @param SERVICE_UUID - The UUID of the service to connect to
-    * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
+     * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
      * @param CLIENT_NAME - The name for the BLE device
      */
     static ClientHandler *initialize(const std::string&, const std::string&, const
     std::string&);
 
     /**
-     * Get the ClientHandler instance
+     * @brief Get the ClientHandler instance
      * @return Ptr to the ClientHandler instance
      */
     static ClientHandler* instance();
 
+    /**
+     * @brief Set the value of connected
+     * @param newConnected - The new value to set connected to
+     */
     void setConnected(const bool&);
 
+    /**
+     * @brief Set the value of server
+     * @param newServer - The new value to set server to
+     */
+     void setServer(BLEAdvertisedDevice*);
 
-    void loop();
+     /**
+      * @brief Set the value of attemptConnect
+      * @param newAttemptConnect - The new value to set attemptConnect to
+      */
+      void setAttemptConnect(const bool&);
+
+      /**
+       * @brief Set the value of attemptScan
+       * @param newInitiateScan - The new value to set attemptScan to
+       */
+      void setInitiateScan(const bool&);
+
+      std::string getServiceUUID() const;
+
+      void loop();
 
 private:
     /**

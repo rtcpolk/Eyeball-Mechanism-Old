@@ -60,6 +60,22 @@ void ClientHandler::setConnected(const bool& newConnected) {
     connected = newConnected;
 }
 
+void ClientHandler::setServer(BLEAdvertisedDevice *newServer) {
+    server = newServer;
+}
+
+void ClientHandler::setAttemptConnect(const bool &newAttemptConnect) {
+    attemptConnect = newAttemptConnect;
+}
+
+void ClientHandler::setInitiateScan(const bool &newInitiateScan) {
+    initiateScan = newInitiateScan;
+}
+
+std::string ClientHandler::getServiceUUID() const {
+    return serviceUUID.toString();
+}
+
 ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
                              const std::string &IMU_CHARACTERISTIC_UUID,
                              const std::string &DEVICE_NAME)
@@ -143,9 +159,9 @@ void ClientCallback::onDisconnect(BLEClient *client) {
 void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
     if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
         BLEDevice::getScan()->stop();
-        server = new BLEAdvertisedDevice(advertisedDevice);
-        attemptConnect = true;
-        attemptScan = true;
+        ClientHandler::setServer(new BLEAdvertisedDevice(advertisedDevice));
+        ClientHandler::setAttemptConnect(true);
+        ClientHandler::setInitiateScan(true);
     }
 }
 
