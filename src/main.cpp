@@ -3,6 +3,7 @@
 // Last Modified: 11/07/24
 
 #include <Arduino.h>
+#include <ArduinoLog.h>
 #include "actuator/clientHandler.h"
 
 //================================================================================================//
@@ -19,7 +20,15 @@
 //================================================================================================//
 
 /**
- * @brief BLE Client - ESP32
+ *  @brief Configure Logging
+ *
+ */
+ constexpr int baudRate = 115200; //Has to math .ini
+ static const char* mainTag = "main";
+
+
+/**
+ * @brief Configure the BLE Client - ESP32
  *
  * The variables below provide the UUIDs for the BLE client. These need to match the UUIDs set in
  * *'server.h* otherwise the client will not be able to connect to the server
@@ -51,7 +60,19 @@ const std::string DEVICE_NAME = "Eyeball Controller";
 //================================================================================================//
 
 void setup() {
+    Serial.begin(baudRate);
+delay (1000);
+    Serial.println("Hello world!");
+    esp_log_level_set("*", ESP_LOG_VERBOSE);
+    delay(1000);
 
+    ESP_LOGD(mainTag, "sample log");
+    ESP_LOGI(mainTag, "test tes");
+    ESP_LOGE(mainTag, "test sdfasdf");
+    ESP_LOGW(mainTag, "test mow");
+    ESP_LOGV(mainTag, "asdfnsdfj;jd");
+
+    Serial.println("it should say smth");
 }
 
 void loop() {}
