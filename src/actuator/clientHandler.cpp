@@ -72,8 +72,8 @@ void ClientHandler::setInitiateScan(const bool &newInitiateScan) {
     initiateScan = newInitiateScan;
 }
 
-std::string ClientHandler::getServiceUUID() const {
-    return serviceUUID.toString();
+BLEUUID ClientHandler::getServiceUUID() const {
+    return serviceUUID;
 }
 
 ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
@@ -157,7 +157,8 @@ void ClientCallback::onDisconnect(BLEClient *client) {
 //Triggered for each advertised ble device found during an active scan. bascially what do to when
 // you encounter a new device
 void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
-    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
+    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService
+    (ClientHandler::getServiceUUID())) {
         BLEDevice::getScan()->stop();
         ClientHandler::setServer(new BLEAdvertisedDevice(advertisedDevice));
         ClientHandler::setAttemptConnect(true);

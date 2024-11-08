@@ -56,7 +56,7 @@ public:
        */
       void setInitiateScan(const bool&);
 
-      std::string getServiceUUID() const;
+      BLEUUID getServiceUUID() const;
 
       void loop();
 
