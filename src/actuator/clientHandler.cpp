@@ -2,11 +2,7 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/07/24
 
-#include "actuator/ClientHandler.h"
-
-AdvertisedDeviceCallbacks::AdvertisedDeviceCallbacks() noexcept : BLEAdvertisedDeviceCallbacks() {
-    int apple = 0;
-}
+#include "actuator/clientHandler.h"
 
 // Set static inst to null
 ClientHandler *ClientHandler::inst = nullptr;

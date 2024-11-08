@@ -6,7 +6,6 @@
 #define CLIENTHANDLER_H
 
 #include "BLEDevice.h"
-#include <BLEAdvertisedDevice.h>
 
 struct ClientCallbacks final : public BLEClientCallbacks {
     void onConnect(BLEClient*) override;
@@ -15,11 +14,10 @@ struct ClientCallbacks final : public BLEClientCallbacks {
 };
 
 struct AdvertisedDeviceCallbacks final : public BLEAdvertisedDeviceCallbacks {
-    AdvertisedDeviceCallbacks();
     /**
      * Called for each advertising BLE server.
      */
-    static void onResult(BLEAdvertisedDevice advertisedDevice);
+    void onResult(BLEAdvertisedDevice advertisedDevice);
 };
 
 /**
