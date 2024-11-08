@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 
+// Last Modified: 11/07/24
 
 #include "actuator/ClientHandler.h"
 
@@ -17,11 +17,11 @@ ClientHandler *ClientHandler::initialize(const std::string &SERVICE_UUID,
         throw std::runtime_error("ClientHandler::initialize can only be called once");
     }
 
-    inst = new ClientHandler(SERVICE_UUID,IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+    inst = new ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
 
     // Retrieve a scanner and...
     BLEScan *scanner = BLEDevice::getScan();
-    scanner->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallback());
+    scanner->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
     scanner->setInterval(SCAN_INTERVAL);
     scanner->setWindow(SCAN_WINDOW);
     scanner->setActiveScan(true);
@@ -56,7 +56,7 @@ void ClientHandler::loop() {
     }
 }
 
-void ClientHandler::setConnected(const bool& newConnected) {
+void ClientHandler::setConnected(const bool &newConnected) {
     connected = newConnected;
 }
 
@@ -92,7 +92,7 @@ bool ClientHandler::connectToServer() {
 
     //This sets the callbacks for the client. These are called from device if there are
     // connection or disconnection events
-    client->setClientCallbacks(new ClientCallback());
+    client->setClientCallbacks(new ClientCallbacks());
 
     //Attempts to establish a connection to server. If the conneciton fails connect will return
     // false negated to true and the program will enter the loop and return false
@@ -128,7 +128,7 @@ bool ClientHandler::connectToServer() {
 
     // Checks if notification operations are allowed
     if (IMUCharacteristic->canNotify()) {
-        // If there is a notificaiton that says hey there is new data, it invokes the notifu
+        // If there is a notification that says hey there is new data, it invokes the notify
         // callback (aka read the quaternion shit)
         IMUCharacteristic->registerForNotify(notifyCallback);
     }
@@ -148,23 +148,29 @@ void ClientHandler::notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, u
     }
 }
 
-void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
+void ClientCallbacks::onConnect(BLEClient *client) { /* Nothing to do */ }
 
-void ClientCallback::onDisconnect(BLEClient *client) {
+void ClientCallbacks::onDisconnect(BLEClient *client) {
     ClientHandler::instance()->setConnected(false);
 }
 
 //Triggered for each advertised ble device found during an active scan. bascially what do to when
 // you encounter a new device
-void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
-    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService
-    (ClientHandler::getServiceUUID())) {
-        BLEDevice::getScan()->stop();
-        ClientHandler::setServer(new BLEAdvertisedDevice(advertisedDevice));
-        ClientHandler::setAttemptConnect(true);
-        ClientHandler::setInitiateScan(true);
-    }
-}
+void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice)
+{
+        Serial.print("BLE Advertised Device found: ");
+        Serial.println(advertisedDevice.toString().c_str());
+
+        // We have found a device, let us now see if it contains the service we are looking for.
+        if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
+
+            BLEDevice::getScan()->stop();
+            myDevice = new BLEAdvertisedDevice(advertisedDevice);
+            doConnect = true;
+            doScan = true;
+
+        }  // Found our server
+    }  // onResult
 
 // maybe have the q's be member variables and then have access methods for the rest of the
 // program to access the stuff
@@ -186,4 +192,4 @@ Callback Execution:
 Inside notifyCallback, you extract the quaternion values (represented as floats) from the data array and process them accordingly.
 This is where the actual data handling happens: you can then use the quaternion values (qw, qx, qy, qz) for whatever processing you need, such as sensor fusion or displaying the IMU data.*/
 
-//todo add logging and excpetion saftey
+//todo add logging and exception safety

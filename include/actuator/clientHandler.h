@@ -1,12 +1,16 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 
+// Last Modified: 11/07/24
 
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
 
 #include "BLEDevice.h"
+#include <BLEAdvertisedDevice.h>
 
+/**
+ * @brief A singleton class to handle everything related to the BLEClient
+ */
 class ClientHandler {
 public:
     // Delete constructor, copy-constructor, and assignment-op
@@ -56,6 +60,10 @@ public:
        */
       void setInitiateScan(const bool&);
 
+      /**
+       * @brief Get the serviceUUID object
+       * @return The serviceUUID object
+       */
       BLEUUID getServiceUUID() const;
 
       void loop();
@@ -92,14 +100,17 @@ private:
     static constexpr int SCAN_DURATION = 15; // How long a scan event will run, in s
 };
 
-struct ClientCallback final : public BLEClientCallbacks {
+struct ClientCallbacks final : public BLEClientCallbacks {
     void onConnect(BLEClient*) override;
 
     void onDisconnect(BLEClient*) override;
 };
 
-struct AdvertisedDeviceCallback final : public BLEAdvertisedDeviceCallbacks {
-    void onResult(BLEAdvertisedDevice);
+struct AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
+    /**
+     * Called for each advertising BLE server.
+     */
+    void onResult(BLEAdvertisedDevice advertisedDevice);
 };
 
 #endif // CLIENTHANDLER_H
