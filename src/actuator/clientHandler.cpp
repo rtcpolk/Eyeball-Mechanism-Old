@@ -56,6 +56,10 @@ void ClientHandler::loop() {
     }
 }
 
+void ClientHandler::setConnected(const bool& newConnected) {
+    connected = newConnected;
+}
+
 ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
                              const std::string &IMU_CHARACTERISTIC_UUID,
                              const std::string &DEVICE_NAME)
@@ -128,22 +132,22 @@ void ClientHandler::notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, u
     }
 }
 
-//void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
-//
-//void ClientCallback::onDisconnect(BLEClient *client) {
-//    setConnected(false);
-//}
-//
-////Triggered for each advertised ble device found during an active scan. bascially what do to when
-//// you encounter a new device
-//void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
-//    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
-//        BLEDevice::getScan()->stop();
-//        server = new BLEAdvertisedDevice(advertisedDevice);
-//        attemptConnect = true;
-//        attemptScan = true;
-//    }
-//}
+void ClientCallback::onConnect(BLEClient *client) { /* Nothing to do */ }
+
+void ClientCallback::onDisconnect(BLEClient *client) {
+    ClientHandler::instance()->setConnected(false);
+}
+
+//Triggered for each advertised ble device found during an active scan. bascially what do to when
+// you encounter a new device
+void AdvertisedDeviceCallback::onResult(BLEAdvertisedDevice advertisedDevice) {
+    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
+        BLEDevice::getScan()->stop();
+        server = new BLEAdvertisedDevice(advertisedDevice);
+        attemptConnect = true;
+        attemptScan = true;
+    }
+}
 
 // maybe have the q's be member variables and then have access methods for the rest of the
 // program to access the stuff

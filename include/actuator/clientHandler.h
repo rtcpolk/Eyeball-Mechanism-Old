@@ -33,6 +33,8 @@ public:
      */
     static ClientHandler* instance();
 
+    void setConnected(const bool&);
+
 
     void loop();
 
@@ -75,7 +77,7 @@ struct ClientCallback final : public BLEClientCallbacks {
 };
 
 struct AdvertisedDeviceCallback final : public BLEAdvertisedDeviceCallbacks {
-    void onResult(BLEAdvertisedDevice) override;
+    void onResult(BLEAdvertisedDevice);
 };
 
 #endif // CLIENTHANDLER_H
