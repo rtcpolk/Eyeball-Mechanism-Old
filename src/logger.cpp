@@ -34,13 +34,11 @@
     }
 #endif // LOGGING_ERROR
 
-#ifdef LOGGING
-    void SerialLogger::printLog(const char *logLevel, const char *message, const char *tag) {
-        Serial.print("[");
-        Serial.print(logLevel);
-        Serial.print("]: ");
-        Serial.print(tag);
-        Serial.print(" -> ");
-        Serial.println(message);
-    }
-#endif // LOGGING
+void SerialLogger::printLog(const char *logLevel, const char *message, const char *tag) {
+    Serial.print("[");
+    Serial.print(logLevel);
+    Serial.print("]: ");
+    Serial.print(tag);
+    Serial.print(" -> ");
+    Serial.println(message);
+}
