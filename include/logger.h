@@ -2,39 +2,86 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/08/2024
 
-#ifdef LOGGING
-    #ifndef LOGGER_H
-    #define LOGGER_H
 
-    #include <Arduino.h>
+#ifndef LOGGER_H
+#define LOGGER_H
 
-    class SerialLogger {
-    public:
-        #ifdef LOGGING_DATA
-            static void data(const char*, const char*);
-        #endif // LOGGING_DATA
+#include <Arduino.h>
 
-        #ifdef LOGGING_DEBUG
-            static void debug(const char*, const char*);
-        #endif // LOGGING_DEBUG
+class SerialLogger {
+public:
+    // Delete everything as this class does not need an instance
+    SerialLogger() = delete;
 
-        #ifdef LOGGING_INFO
-            static void info(const char*, const char*);
-        #endif // LOGGING_INFO
+    SerialLogger(const SerialLogger &) = delete;
 
-        #ifdef LOGGING_WARNING
-            static void warning(const char*, const char*);
-        #endif // LOGGING_WARNING
+    SerialLogger &operator=(const SerialLogger &) = delete;
 
-        #ifdef LOGGING_ERROR
-            static void error(const char*, const char*);
-        #endif // LOGGING_ERROR
+    ~SerialLogger() = delete;
 
-    private:
-        SerialLogger() = default;
+    /**
+     * @brief Log things at the data level
+     * @param message - The log message to output
+     * @param tag - A tag for who is calling the log event
+     */
+    #ifdef LOGGING_DATA
+        static void data(const char *, const char *);
+    #else
+        static void data(const char *, const char *) {}
+    #endif // LOGGING_DATA
 
-        static void printLog(const char *, const char*, const char*);
-    };
+    /**
+     * @brief Log things at the debug level
+     * @param message - The log message to output
+     * @param tag - A tag for who is calling the log event
+     */
+    #ifdef LOGGING_DEBUG
+        static void debug(const char *, const char *);
+    #else
+        static void debug(const char *, const char *) {}
+    #endif // LOGGING_DEBUG
 
-    #endif // LOGGER_H
-#endif // LOGGING
+    /**
+     * @brief Log things at the info level
+     * @param message - The log message to output
+     * @param tag - A tag for who is calling the log event
+     */
+    #ifdef LOGGING_INFO
+        static void info(const char *, const char *);
+    #else
+        static void info(const char *, const char *) {}
+    #endif // LOGGING_INFO
+
+    /**
+     * @brief Log things at the warning level
+     * @param message - The log message to output
+     * @param tag - A tag for who is calling the log event
+     */
+    #ifdef LOGGING_WARNING
+        static void warning(const char *, const char *);
+    #else
+        static void warning(const char *, const char *) {}
+    #endif // LOGGING_WARNING
+
+    /**
+     * @brief Log things at the error level
+     * @param message - The log message to output
+     * @param tag - A tag for who is calling the log event
+     */
+    #ifdef LOGGING_ERROR
+        static void error(const char *, const char *);
+    #else
+        static void error(const char *, const char *) {}
+    #endif // LOGGING_ERROR
+
+private:
+    /**
+     * @brief Log things at the data level
+     * @param logLevel - The log level of the log event
+     * @param message - The log message to output
+     * @param tag - A tag for who is calling the log event
+     */
+    static void printLog(const char *, const char *, const char *);
+};
+
+#endif // LOGGER_H
