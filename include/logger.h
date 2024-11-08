@@ -24,55 +24,37 @@ public:
      * @param message - The log message to output
      * @param tag - A tag for who is calling the log event
      */
-    #ifdef LOGGING_DATA
-        static void data(const char *, const char *);
-    #else
-        static void data(const char *, const char *) {}
-    #endif // LOGGING_DATA
+
+    static void data(const char *, const char *);
 
     /**
      * @brief Log things at the debug level
      * @param message - The log message to output
      * @param tag - A tag for who is calling the log event
      */
-    #ifdef LOGGING_DEBUG
-        static void debug(const char *, const char *);
-    #else
-        static void debug(const char *, const char *) {}
-    #endif // LOGGING_DEBUG
+    static void debug(const char *, const char *);
 
     /**
      * @brief Log things at the info level
      * @param message - The log message to output
      * @param tag - A tag for who is calling the log event
      */
-    #ifdef LOGGING_INFO
-        static void info(const char *, const char *);
-    #else
-        static void info(const char *, const char *) {}
-    #endif // LOGGING_INFO
+
+    static void info(const char *, const char *);
 
     /**
      * @brief Log things at the warning level
      * @param message - The log message to output
      * @param tag - A tag for who is calling the log event
      */
-    #ifdef LOGGING_WARNING
-        static void warning(const char *, const char *);
-    #else
-        static void warning(const char *, const char *) {}
-    #endif // LOGGING_WARNING
+    static void warning(const char *, const char *);
 
     /**
      * @brief Log things at the error level
      * @param message - The log message to output
      * @param tag - A tag for who is calling the log event
      */
-    #ifdef LOGGING_ERROR
-        static void error(const char *, const char *);
-    #else
-        static void error(const char *, const char *) {}
-    #endif // LOGGING_ERROR
+    static void error(const char *, const char *);
 
 private:
     /**
