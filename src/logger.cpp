@@ -7,29 +7,39 @@
 // Set static inst to null
 Logger* Logger::inst = nullptr;
 
-void setLogLevel(const LogLevel& newlogLevel) {
-    if (inst == nullptr) {
-        inst = new Logger(newlogLevel);
-    } else {
-        logLevel = newlogLevel;
-    }
-}
-
 Logger* Logger::instance() {
     if (inst == nullptr) {
-        throw std::runtime_error("Logger::setLogLevel must be called first");
+        inst = new Logger();
     }
 
     return inst;
 }
 
-void debug(const std::string&);
+void Logger::data(const char *message, const char *tag) {
+    printLog(DATA, message, tag);
+}
 
-void info(const std::string&);
+void Logger::debug(const char *message, const char *tag) {
+    printLog(DEBUG, message, tag);
+}
 
-void warning(const std::string&);
+void Logger::info(const char *message, const char *tag) {
+    printLog(INFO, message, tag);
+}
 
-void error(const std::string&);
+void Logger::warning(const char *message, const char *tag) {
+    printLog(WARNING, message, tag);
+}
 
-private:
-Logger(LogLevel = INFO);
+void Logger::error(const char *message, const char *tag) {
+    printLog(ERROR, message, tag);
+}
+
+void Logger::printLog(const LogLevel &logLevel, const char *message, const char *tag) {
+    Serial.print("[");
+    Serial.print(logLevel);
+    Serial.print("]: ");
+    Serial.print(tag);
+    Serial.print(" -> ");
+    Serial.println(message);
+}
