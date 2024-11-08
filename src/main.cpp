@@ -2,10 +2,6 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/07/24
 
-#include <Arduino.h>
-#include <ArduinoLog.h>
-#include "actuator/clientHandler.h"
-
 //================================================================================================//
 
 /* Welcome to the inner workings of BLINK's eyeball mechanism - the brain to the eye if you will.
@@ -13,11 +9,23 @@
  * components and then runs the general control loop. The control loop...
  *
  * To properly configure this program for the physical eyeball mechanism setup, read through the
- * following sections and set the variables accordingly. There is a section for each of the
- * components that defines pin connections and other component specific parameters.
+ * following sections and set the variables accordingly. The first subsection defines macros that
+ * control logging. The second subsection #includes all necessary files, do not edit these. The
+ * third subsection defines pin connections and other component specific parameters for each of the
+ * components in the mechanism
  */
 
 //================================================================================================//
+
+#define LOGGING
+#define LOGGING_DATA
+#define LOGGING_DEBUG
+#define LOGGING_INFO
+#define LOGGING_WARNING
+#define LOGGING_ERROR
+
+#include <Arduino.h>
+#include "actuator/clientHandler.h"
 
 /**
  *  @brief Configure Logging

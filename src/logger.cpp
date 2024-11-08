@@ -4,42 +4,43 @@
 
 #include "logger.h"
 
-// Set static inst to null
-Logger* Logger::inst = nullptr;
-
-Logger* Logger::instance() {
-    if (inst == nullptr) {
-        inst = new Logger();
+#ifdef LOGGING_DATA
+    void SerialLogger::data(const char *message, const char *tag) {
+        printLog("DATA", message, tag);
     }
+#endif // LOGGING_DATA
 
-    return inst;
-}
+#ifdef LOGGING_DEBUG
+    void SerialLogger::debug(const char *message, const char *tag) {
+        printLog("DEBUG", message, tag);
+    }
+#endif // LOGGING_DEBUG
 
-void Logger::data(const char *message, const char *tag) {
-    printLog(DATA, message, tag);
-}
+#ifdef LOGGING_INFO
+    void SerialLogger::info(const char *message, const char *tag) {
+        printLog("INFO", message, tag);
+    }
+#endif // LOGGING_INFO
 
-void Logger::debug(const char *message, const char *tag) {
-    printLog(DEBUG, message, tag);
-}
+#ifdef LOGGING_WARNING
+    void SerialLogger::warning(const char *message, const char *tag) {
+        printLog("WARNING", message, tag);
+    }
+#endif // LOGGING_WARNING
 
-void Logger::info(const char *message, const char *tag) {
-    printLog(INFO, message, tag);
-}
+#ifdef LOGGING_ERROR
+    void SerialLogger::error(const char *message, const char *tag) {
+        printLog("ERROR", message, tag);
+    }
+#endif // LOGGING_ERROR
 
-void Logger::warning(const char *message, const char *tag) {
-    printLog(WARNING, message, tag);
-}
-
-void Logger::error(const char *message, const char *tag) {
-    printLog(ERROR, message, tag);
-}
-
-void Logger::printLog(const LogLevel &logLevel, const char *message, const char *tag) {
-    Serial.print("[");
-    Serial.print(logLevel);
-    Serial.print("]: ");
-    Serial.print(tag);
-    Serial.print(" -> ");
-    Serial.println(message);
-}
+#ifdef LOGGING
+    void SerialLogger::printLog(const char *logLevel, const char *message, const char *tag) {
+        Serial.print("[");
+        Serial.print(logLevel);
+        Serial.print("]: ");
+        Serial.print(tag);
+        Serial.print(" -> ");
+        Serial.println(message);
+    }
+#endif // LOGGING

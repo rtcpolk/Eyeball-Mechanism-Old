@@ -2,43 +2,39 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/08/2024
 
-//#ifdef LOGGING
+#ifdef LOGGING
     #ifndef LOGGER_H
     #define LOGGER_H
 
     #include <Arduino.h>
 
-    class Logger {
+    class SerialLogger {
     public:
-        enum LogLevel {
-            DATA,
-            DEBUG,
-            INFO,
-            WARNING,
-            ERROR
-        };
+        #ifdef LOGGING_DATA
+            static void data(const char*, const char*);
+        #endif // LOGGING_DATA
 
-        static Logger* instance();
+        #ifdef LOGGING_DEBUG
+            static void debug(const char*, const char*);
+        #endif // LOGGING_DEBUG
 
-        void data(const char*, const char*);
+        #ifdef LOGGING_INFO
+            static void info(const char*, const char*);
+        #endif // LOGGING_INFO
 
-        void debug(const char*, const char*);
+        #ifdef LOGGING_WARNING
+            static void warning(const char*, const char*);
+        #endif // LOGGING_WARNING
 
-        void info(const char*, const char*);
-
-        void warning(const char*, const char*);
-
-        void error(const char*, const char*);
+        #ifdef LOGGING_ERROR
+            static void error(const char*, const char*);
+        #endif // LOGGING_ERROR
 
     private:
-        Logger() = default;
+        SerialLogger() = default;
 
-        static void printLog(const LogLevel&, const char*);
-
-        // Member variables
-        static Logger* inst;    // Singleton ptr
+        static void printLog(const char *, const char*, const char*);
     };
 
-
     #endif // LOGGER_H
-//#endif // LOGGING
+#endif // LOGGING
