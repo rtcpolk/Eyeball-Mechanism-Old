@@ -17,7 +17,7 @@ struct AdvertisedDeviceCallbacks final : public BLEAdvertisedDeviceCallbacks {
     /**
      * Called for each advertising BLE server.
      */
-    void onResult(BLEAdvertisedDevice advertisedDevice);
+    void onResult(BLEAdvertisedDevice advertisedDevice) override;
 };
 
 /**
