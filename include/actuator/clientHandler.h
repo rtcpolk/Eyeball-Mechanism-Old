@@ -4,10 +4,8 @@
 
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
-#define LOGGING_CLIENT
 
 #include "BLEDevice.h"
-#include "logger.h"
 
 struct ClientCallbacks final : public BLEClientCallbacks {
     void onConnect(BLEClient*) override;

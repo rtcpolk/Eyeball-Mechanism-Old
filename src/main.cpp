@@ -29,15 +29,6 @@
  * @param BAUD_RATE - The baudRate for Serial communication
  * @param mainTag - The logging tag for main.cpp
  */
-//#define LOGGING_DATA
-//#define LOGGING_DEBUG
-#define LOGGING_INFO
-//#define LOGGING_WARNING
-//#define LOGGING_ERROR
-
-#define LOGGING_MAIN
-#define LOGGING_CLIENT
-#define LOGGING_CLIENT_DATA
 
 constexpr int BAUD_RATE = 115200;
 
@@ -47,7 +38,7 @@ constexpr int BAUD_RATE = 115200;
  * The following files are used throughout main.cpp
  */
 #include <Arduino.h>
-#include "logger.h"
+#include <C:\Users\rober\blink\lib\Arduino-Log\ArduinoLog.h>
 #include "actuator/clientHandler.h"
 
 /**
@@ -70,36 +61,16 @@ const std::string DEVICE_NAME = "Eyeball Controller";
 
 //================================================================================================//
 
-/**
- * @brief Main Variables
- *
- * The variables below are used throughout the main program
- */
-static const char* mainTag = "main";
-//ClientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME); // The client is
-// created and
-// member
-// variables set
+// What goes here?
 
 //================================================================================================//
 
 void setup() {
     Serial.begin(BAUD_RATE);
-delay(500);
-    SerialLogger::info("About to initialize client", "main.cpp line 89");
+    delay(500);
+    Log.begin(LOG_LEVEL_VERBOSE, &Serial, true);
     ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
-
-#ifdef LOGGING_MAIN
-    SerialLogger::data("message me", mainTag);
-#endif // LOGGING_MAIN
-
-#ifdef NOTMAIN
-    SerialLogger::data("SDFD", "");
-#endif
-
-#ifdef LOGGING_CLIENT
-    SerialLogger::info("SDFD", "");
-#endif
 }
 
-void loop() {}
+void loop() {
+}

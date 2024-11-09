@@ -3,6 +3,7 @@
 // Last Modified: 11/07/24
 
 #include "actuator/clientHandler.h"
+#include "C:\Users\rober\blink\lib\Arduino-Log\ArduinoLog.h"
 
 // Set static inst to null
 ClientHandler *ClientHandler::inst = nullptr;
@@ -12,14 +13,11 @@ ClientHandler::~ClientHandler() { inst = nullptr; }
 ClientHandler *ClientHandler::initialize(const std::string &SERVICE_UUID,
                                          const std::string &IMU_CHARACTERISTIC_UUID,
                                          const std::string &DEVICE_NAME) {
+    Log.info("Client has been initialized");
     // Only initialize once
     if (inst != nullptr) {
         throw std::runtime_error("ClientHandler::initialize can only be called once");
     }
-
-#ifdef LOGGING_CLIENT
-    SerialLogger::info("initialized", "");
-#endif
 
     inst = new ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
 
@@ -29,6 +27,7 @@ ClientHandler *ClientHandler::initialize(const std::string &SERVICE_UUID,
     scanner->setInterval(SCAN_INTERVAL);
     scanner->setWindow(SCAN_WINDOW);
     scanner->setActiveScan(true);
+    Log.info("Client has been initialized");
     scanner->start(SCAN_DURATION, false);
 
     return inst;
