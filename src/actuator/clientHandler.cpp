@@ -17,6 +17,10 @@ ClientHandler *ClientHandler::initialize(const std::string &SERVICE_UUID,
         throw std::runtime_error("ClientHandler::initialize can only be called once");
     }
 
+#ifdef LOGGING_CLIENT
+    SerialLogger::info("initialized", "");
+#endif
+
     inst = new ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
 
     // Retrieve a scanner and...

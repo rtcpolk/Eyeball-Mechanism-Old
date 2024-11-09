@@ -30,6 +30,9 @@ void SerialLogger::error(const char *message, const char *tag) {
 
 void SerialLogger::printLog(const char *logLevel, const char *message, const char *tag) {
     Serial.print("[");
+    Serial.print(double(millis())/1000); // Get time in s
+    Serial.print("]");
+    Serial.print("[");
     Serial.print(logLevel);
     Serial.print("]: ");
     Serial.print(tag);

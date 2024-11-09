@@ -5,35 +5,50 @@
 //================================================================================================//
 
 /* Welcome to the inner workings of BLINK's eyeball mechanism - the brain to the eye if you will.
- * This is the main program that first sets up the program to interface with the physical
- * components and then runs the general control loop. The control loop...
+ * This is the main program that first configures the program for logging and to interface with
+ * the physical components of the mechanism. It then runs the general control loop. The control
+ * loop...
  *
  * To properly configure this program for the physical eyeball mechanism setup, read through the
- * following sections and set the variables accordingly. The first subsection defines macros that
- * control logging. The second subsection #includes all necessary files, do not edit these. The
- * third subsection defines pin connections and other component specific parameters for each of the
- * components in the mechanism
+ * following sections and set the variables accordingly. The first portion defines macros that
+ * control SerialLogging. The second portion #includes all necessary files, don't edit these. The
+ * third portion defines pin connections and other parameters for each of the components in the
+ * mechanism
  */
 
 //================================================================================================//
 
-#define LOGGING
-#define LOGGING_DATA
-#define LOGGING_DEBUG
+/**
+ * @brief Serial Logging
+ *
+ * The macros below enable different log messages to be printed to the Serial. Select the level
+ * of logging by uncommenting the corresponding macro. Then select the files you wish to get log
+ * messages from. Set the baudRate to match that of the platformio.ini file. Provide the logging
+ * tag for main.cpp
+ *
+ * @param BAUD_RATE - The baudRate for Serial communication
+ * @param mainTag - The logging tag for main.cpp
+ */
+//#define LOGGING_DATA
+//#define LOGGING_DEBUG
 #define LOGGING_INFO
-#define LOGGING_WARNING
-#define LOGGING_ERROR
+//#define LOGGING_WARNING
+//#define LOGGING_ERROR
 
-#include <Arduino.h>
-#include "actuator/clientHandler.h"
+#define LOGGING_MAIN
+#define LOGGING_CLIENT
+#define LOGGING_CLIENT_DATA
+
+constexpr int BAUD_RATE = 115200;
 
 /**
- *  @brief Configure Logging
+ * @breif #includes
  *
+ * The following files are used throughout main.cpp
  */
- constexpr int baudRate = 115200; //Has to math .ini
- static const char* mainTag = "main";
-
+#include <Arduino.h>
+#include "logger.h"
+#include "actuator/clientHandler.h"
 
 /**
  * @brief Configure the BLE Client - ESP32
@@ -60,6 +75,7 @@ const std::string DEVICE_NAME = "Eyeball Controller";
  *
  * The variables below are used throughout the main program
  */
+static const char* mainTag = "main";
 //ClientHandler client(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME); // The client is
 // created and
 // member
@@ -68,19 +84,22 @@ const std::string DEVICE_NAME = "Eyeball Controller";
 //================================================================================================//
 
 void setup() {
-    Serial.begin(baudRate);
-delay (1000);
-    Serial.println("Hello world!");
-    esp_log_level_set("*", ESP_LOG_VERBOSE);
-    delay(1000);
+    Serial.begin(BAUD_RATE);
+delay(500);
+    SerialLogger::info("About to initialize client", "main.cpp line 89");
+    ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
 
-    ESP_LOGD(mainTag, "sample log");
-    ESP_LOGI(mainTag, "test tes");
-    ESP_LOGE(mainTag, "test sdfasdf");
-    ESP_LOGW(mainTag, "test mow");
-    ESP_LOGV(mainTag, "asdfnsdfj;jd");
+#ifdef LOGGING_MAIN
+    SerialLogger::data("message me", mainTag);
+#endif // LOGGING_MAIN
 
-    Serial.println("it should say smth");
+#ifdef NOTMAIN
+    SerialLogger::data("SDFD", "");
+#endif
+
+#ifdef LOGGING_CLIENT
+    SerialLogger::info("SDFD", "");
+#endif
 }
 
 void loop() {}
