@@ -3,7 +3,7 @@
 // Last Modified: 11/07/24
 
 #include "actuator/clientHandler.h"
-#include "C:\Users\rober\blink\lib\Arduino-Log\ArduinoLog.h"
+#include "../../../lib/Arduino-Log/ArduinoLog.h"
 
 // Set static inst to null
 ClientHandler *ClientHandler::inst = nullptr;

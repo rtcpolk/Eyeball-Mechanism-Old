@@ -38,7 +38,7 @@ constexpr int BAUD_RATE = 115200;
  * The following files are used throughout main.cpp
  */
 #include <Arduino.h>
-#include <C:\Users\rober\blink\lib\Arduino-Log\ArduinoLog.h>
+#include "../../lib/Arduino-Log/ArduinoLog.h"
 #include "actuator/clientHandler.h"
 
 /**
