@@ -114,6 +114,8 @@ void setup() {
         Log.errorln("ClientHandler::initialize - Unknown Exception");
         restart();
     }
+
+    ClientHandler::instance()->loop();
 }
 
 void loop() {

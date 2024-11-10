@@ -59,7 +59,9 @@ ClientHandler *ClientHandler::inst = nullptr;
 
 ClientHandler::~ClientHandler() {
     Log.traceln("ClientHandler::~ClientHandler - Start");
+
     inst = nullptr;
+
     Log.traceln("ClientHandler::~ClientHandler - Stop");
 }
 
@@ -88,6 +90,8 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
     // Attempt to retrieve a Scan
     auto *scanner = BLEDevice::getScan();
     if (!scanner) {
+        delete inst;
+
         Log.errorln("ClientHandler::initialize - Failed to retrieve scanner");
         Log.traceln("ClientHandler::initialize - Stop");
         return false;
@@ -96,14 +100,16 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
     // Attempt to retrieve an AdvertisedDeviceCallback
     auto callback = std::make_shared<AdvertisedDeviceCallbacks>();
     if (!callback) {
+        delete inst;
         delete scanner;
+
         Log.errorln("ClientHandler::initialize - Memory allocation failed for "
                     "AdvertisedDeviceCallbacks");
         Log.traceln("ClientHandler::initialize - Stop");
         return false;
     }
 
-    // Configure the scan
+    // Configure the scanner
     scanner->setAdvertisedDeviceCallbacks(callback.get());
     scanner->setInterval(SCAN_INTERVAL);
     scanner->setWindow(SCAN_WINDOW);
@@ -119,53 +125,70 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
 }
 
 ClientHandler *ClientHandler::instance() {
+    Log.traceln("ClientHandler::instance - Start");
+
     if (inst == nullptr) {
         Log.errorln("ClientHandler::instance - Initialize must be called first");
     }
 
+    Log.traceln("ClientHandler::instance - Stop");
     return inst;
 }
 
-void ClientHandler::loop() {
-    if (attemptConnect) {
-        if (connectToServer()) {
-            //we are connected
-        } else {
-            //we are not connected
+[[noreturn]] void ClientHandler::loop() {
+    Log.traceln("ClientHandler::loop - Start");
+
+    while (true) {
+        if (attemptConnect) {
+            connectToServer();
+
+            if (connectToServer()) {
+                Log.infoln("ClientHandler::loop - Client is connected to the server");
+            } else {
+                //we are not connected
+            }
+
+            attemptConnect = false;
         }
 
-        attemptConnect = false;
-    }
-
-    if (connected) {
-        // do stuff once we are connected
-    } else if (initiateScan) {
-        BLEDevice::getScan()->start(0);
+        if (connected) {
+            // do stuff once we are connected
+        } else if (initiateScan) {
+            BLEDevice::getScan()->start(0);
+        }
     }
 }
 
 void ClientHandler::setConnected(const bool &newConnected) {
     Log.traceln("ClientHandler::setConnected - Start");
+
     connected = newConnected;
+
     Log.traceln("ClientHandler::setConnected - Stop");
 }
 
 void ClientHandler::setServer(BLEAdvertisedDevice *newServer) {
     Log.traceln("ClientHandler::setServer - Start");
+
     delete server;
     server = newServer;
+
     Log.traceln("ClientHandler::setServer - Stop");
 }
 
 void ClientHandler::setAttemptConnect(const bool &newAttemptConnect) {
     Log.traceln("ClientHandler::setAttemptConnect - Start");
+
     attemptConnect = newAttemptConnect;
+
     Log.traceln("ClientHandler::setAttemptConnect - Stop");
 }
 
 void ClientHandler::setInitiateScan(const bool &newInitiateScan) {
     Log.traceln("ClientHandler::setInitiateScan - Start");
+
     initiateScan = newInitiateScan;
+
     Log.traceln("ClientHandler::setInitiateScan - Stop");
 }
 
@@ -191,9 +214,10 @@ ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
 }
 
 bool ClientHandler::connectToServer() {
+    //todo do i need to clean up before returning false?
     Log.traceln("ClientHandler::connectToServer - Start");
 
-    // Attempt to create a client object
+    // Attempt to create the client and callback objects, and set the client's callback function
     BLEClient *client = BLEDevice::createClient();
     if (!client) {
         Log.errorln("ClientHandler::connect to server - Memory allocation failed for client "
@@ -202,7 +226,6 @@ bool ClientHandler::connectToServer() {
         return false;
     }
 
-    // Attempt to create a ClientCallbacks object
     auto *callback = new(std::nothrow) ClientCallbacks();
     if (!callback) {
         Log.errorln("ClientHandler::connect to server - Memory allocation failed for "
@@ -211,15 +234,13 @@ bool ClientHandler::connectToServer() {
         return false;
     }
 
-    //This sets the callbacks for the client. These are called from device if there are
-    // connection or disconnection events
     client->setClientCallbacks(callback);
 
-    //Attempts to establish a connection to server. If the connection fails connect will return
-    // false negated to true and the program will enter the loop and return false
+    //Attempt to establish a connection to server
     Log.traceln("ClientHandler::connectToServer - Attempting to establish a connection to the "
                 "server");
     if (!client->connect(server)) {
+        Log.warningln("ClientHandler::connectToServer - Failed to establish a connection");
         Log.traceln("ClientHandler::connectToServer - Stop");
         return false;
     }
@@ -231,12 +252,13 @@ bool ClientHandler::connectToServer() {
     Log.traceln("ClientHandler::connectToServer - Attempting to get the service UUID");
     BLERemoteService *remoteService = client->getService(serviceUUID);
     if (remoteService == nullptr) {
+        Log.warning("ClientHandler::connectToServer - The service is unavailable");
         client->disconnect();
         Log.traceln("ClientHandler::connectToServer - Stop");
         return false;
     }
 
-    // See above but for IMU characteristc
+    // See above but for IMU characteristic
     Log.traceln("ClientHandler::connectToServer - Attempting to get the IMU characteristic UUID");
     IMUCharacteristic = remoteService->getCharacteristic(imuCharacteristicUUID);
     if (IMUCharacteristic == nullptr) {
@@ -268,13 +290,19 @@ bool ClientHandler::connectToServer() {
 
 void ClientHandler::notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, uint8_t
 *data, size_t length, bool isNotify) {
+    Log.traceln("ClientHandler::notifyCallback - Start");
+
     if (length == 16) {
         float qw, qx, qy, qz;
         memcpy(&qw, &data[0], sizeof(float));
         memcpy(&qx, &data[4], sizeof(float));
         memcpy(&qy, &data[8], sizeof(float));
         memcpy(&qz, &data[12], sizeof(float));
+    } else {
+        Log.warningln("ClientHandler::notifyCallback - Data is not of length 16");
     }
+
+    Log.traceln("ClientHandler::notifyCallback - Stop");
 }
 
 // maybe have the q's be member variables and then have access methods for the rest of the
