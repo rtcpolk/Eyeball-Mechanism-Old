@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/07/24
 
-#include "actuator/clientHandler.h"
+#include "controller/actuator/clientHandler.h"
 #include "../../../lib/Arduino-Log/ArduinoLog.h"
 
 // Set static inst to null

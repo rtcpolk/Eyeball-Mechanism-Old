@@ -4,43 +4,60 @@
 
 //================================================================================================//
 
-/* Welcome to the inner workings of BLINK's eyeball mechanism - the brain to the eye if you will.
+/*
+ * Welcome to the inner workings of BLINK's eyeball mechanism - the brain to the eye if you will.
  * This is the main program that first configures the program for logging and to interface with
  * the physical components of the mechanism. It then runs the general control loop. The control
  * loop...
  *
- * To properly configure this program for the physical eyeball mechanism setup, read through the
- * following sections and set the variables accordingly. The first portion defines macros that
- * control SerialLogging. The second portion #includes all necessary files, don't edit these. The
- * third portion defines pin connections and other parameters for each of the components in the
- * mechanism
+ * To properly configure this program to run with each of the components in the eyeball
+ * mechanism, read through the following sections and set the variables accordingly. These
+ * sections set pin connections and other parameters to interface with the physical setup. The
+ * variables are explained in the comments above each section. The sections are in the following
+ * order:
+ *      Logging
+ *      BLE Client
  */
 
 //================================================================================================//
 
-/**
- * @brief Serial Logging
- *
- * The macros below enable different log messages to be printed to the Serial. Select the level
- * of logging by uncommenting the corresponding macro. Then select the files you wish to get log
- * messages from. Set the baudRate to match that of the platformio.ini file. Provide the logging
- * tag for main.cpp
- *
- * @param BAUD_RATE - The baudRate for Serial communication
- * @param mainTag - The logging tag for main.cpp
- */
-
-constexpr int BAUD_RATE = 115200;
-
-/**
- * @breif #includes
- *
- * The following files are used throughout main.cpp
- */
+// #include the necessary header files, don't change these
 #include <Arduino.h>
-#include "../../lib/Arduino-Log/ArduinoLog.h"
-#include "actuator/clientHandler.h"
+#include <ArduinoLog.h>
+#include "controller/actuator/clientHandler.h"
 
+/*
+ * Configure Logging
+ *
+ * This section determines the level of logging within the program. The messages are outputted
+ * to the Serial monitor. THe following log levels are available:
+ *      0 - LOG_LEVEL_SILENT     no output
+ *      1 - LOG_LEVEL_FATAL      fatal errors
+ *      2 - LOG_LEVEL_ERROR      all errors
+ *      3 - LOG_LEVEL_WARNING    errors, and warnings
+ *      4 - LOG_LEVEL_NOTICE     errors, warnings and notices
+ *      5 - LOG_LEVEL_TRACE      errors, warnings, notices & traces
+ *      6 - LOG_LEVEL_VERBOSE    all
+ * To completely remove logging, go into the ArduinoLog.h file and uncomment line 38 to define
+ * DISABLE_LOGGING.
+ * 
+ * LOG_LEVEL - The level of messages to show. Uncomment the desired level
+ * BAUD_RATE - Set the baud rate for serial communication. This should match the value in the
+ *             platformio.ini file
+ */
+
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_SILENT;
+// constexpr uint8_t LOG_LEVEL = LOG_LEVEL_FATAL;
+// constexpr uint8_t LOG_LEVEL = LOG_LEVEL_ERROR;
+// constexpr uint8_t LOG_LEVEL = LOG_LEVEL_WARNING;
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_NOTICE;
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
+constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
+constexpr uint32_t BAUD_RATE = 115200;
+
+/*
+ * Configure BLE Client
+ */
 /**
  * @brief Configure the BLE Client - ESP32
  *
@@ -55,9 +72,6 @@ constexpr int BAUD_RATE = 115200;
  * There are also three class constants that control scanning events. These can be adjusted in the
  * clientBLE.h file.
  */
-const std::string SERVICE_UUID = "da2aa210-e2ab-4d96-8d94-8536ec5a2728";
-const std::string IMU_CHARACTERISTIC_UUID = "72b9a4be-85fe-4cd5-ae42-f32414542c5a";
-const std::string DEVICE_NAME = "Eyeball Controller";
 
 //================================================================================================//
 
@@ -67,8 +81,8 @@ const std::string DEVICE_NAME = "Eyeball Controller";
 
 void setup() {
     Serial.begin(BAUD_RATE);
-    delay(500);
-    Log.begin(LOG_LEVEL_VERBOSE, &Serial, true);
+    Log.begin(LOG_LEVEL, &Serial, true);
+
     ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
 }
 
