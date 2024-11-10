@@ -29,10 +29,12 @@ void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
             (ClientHandler::instance()->getServiceUUID())) {
         // Attempt to make a BLEAdvertisedDevice (the server)
         auto *device = new(std::nothrow)
-        BLEAdvertisedDevice(advertisedDevice);
+                BLEAdvertisedDevice(advertisedDevice);
         if (!device) {
             Log.errorln("AdvertisedDeviceCallbacks::onResult - Memory allocation failed for "
                         "BLEAdvertisedDevice");
+            Log.traceln("AdvertisedDeviceCallbacks::onResult - Stop");
+            return;
         }
 
         // Stop scan and set flags
@@ -42,7 +44,7 @@ void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
         ClientHandler::instance()->setInitiateScan(true);
 
         Log.infoln("AdvertisedDeviceCallbacks::onResult - Found a device with the correct service"
-                   " UUID. Set connect flags to true");
+                   " UUID");
     } else {
         Log.traceln("AdvertisedDeviceCallbacks::onResult - Advertised device does not contain "
                     "the "
@@ -69,15 +71,17 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
     // Only initialize once
     if (inst != nullptr) {
         Log.errorln("ClientHandler::initialize - Already initialized");
+        Log.traceln("ClientHandler::initialize - Stop");
         return false;
     }
 
     // Attempt to allocate memory for the singleton inst
     inst = new(std::nothrow)
-    ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+            ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
     if (!inst) {
         Log.errorln("ClientHandler::initialize - Memory allocation failed for ClientHandler "
                     "instance");
+        Log.traceln("ClientHandler::initialize - Stop");
         return false;
     }
 
@@ -85,6 +89,7 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
     auto *scanner = BLEDevice::getScan();
     if (!scanner) {
         Log.errorln("ClientHandler::initialize - Failed to retrieve scanner");
+        Log.traceln("ClientHandler::initialize - Stop");
         return false;
     }
 
@@ -94,6 +99,7 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
         delete scanner;
         Log.errorln("ClientHandler::initialize - Memory allocation failed for "
                     "AdvertisedDeviceCallbacks");
+        Log.traceln("ClientHandler::initialize - Stop");
         return false;
     }
 
@@ -114,7 +120,7 @@ bool ClientHandler::initialize(const std::string &SERVICE_UUID,
 
 ClientHandler *ClientHandler::instance() {
     if (inst == nullptr) {
-        throw std::runtime_error("ClientHandler::initialize must be called first");
+        Log.errorln("ClientHandler::instance - Initialize must be called first");
     }
 
     return inst;
@@ -139,23 +145,33 @@ void ClientHandler::loop() {
 }
 
 void ClientHandler::setConnected(const bool &newConnected) {
+    Log.traceln("ClientHandler::setConnected - Start");
     connected = newConnected;
+    Log.traceln("ClientHandler::setConnected - Stop");
 }
 
 void ClientHandler::setServer(BLEAdvertisedDevice *newServer) {
+    Log.traceln("ClientHandler::setServer - Start");
     delete server;
     server = newServer;
+    Log.traceln("ClientHandler::setServer - Stop");
 }
 
 void ClientHandler::setAttemptConnect(const bool &newAttemptConnect) {
+    Log.traceln("ClientHandler::setAttemptConnect - Start");
     attemptConnect = newAttemptConnect;
+    Log.traceln("ClientHandler::setAttemptConnect - Stop");
 }
 
 void ClientHandler::setInitiateScan(const bool &newInitiateScan) {
+    Log.traceln("ClientHandler::setInitiateScan - Start");
     initiateScan = newInitiateScan;
+    Log.traceln("ClientHandler::setInitiateScan - Stop");
 }
 
 BLEUUID ClientHandler::getServiceUUID() const {
+    Log.traceln("ClientHandler::getServiceUUID - Start");
+    Log.traceln("ClientHandler::getServiceUUID - Stop");
     return serviceUUID;
 }
 
@@ -165,21 +181,46 @@ ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
         : serviceUUID(SERVICE_UUID), imuCharacteristicUUID(IMU_CHARACTERISTIC_UUID),
           attemptConnect(false), connected(false), initiateScan(false), server
                   (nullptr), IMUCharacteristic(nullptr) {
+    Log.traceln("ClientHandler::ClientHandler - Start");
+
     // Create the BLE device
     BLEDevice::init(DEVICE_NAME);
+
+    Log.infoln("ClientHandler::ClientHandler - BLE device created");
+    Log.traceln("ClientHandler::ClientHandler - Stop");
 }
 
 bool ClientHandler::connectToServer() {
-    // This creates a client object and returns a pointer
+    Log.traceln("ClientHandler::connectToServer - Start");
+
+    // Attempt to create a client object
     BLEClient *client = BLEDevice::createClient();
+    if (!client) {
+        Log.errorln("ClientHandler::connect to server - Memory allocation failed for client "
+                    "object");
+        Log.traceln("ClientHandler::connectToServer - Stop");
+        return false;
+    }
+
+    // Attempt to create a ClientCallbacks object
+    auto *callback = new(std::nothrow) ClientCallbacks();
+    if (!callback) {
+        Log.errorln("ClientHandler::connect to server - Memory allocation failed for "
+                    "ClientCallbacks");
+        Log.traceln("ClientHandler::connectToServer - Stop");
+        return false;
+    }
 
     //This sets the callbacks for the client. These are called from device if there are
     // connection or disconnection events
-    client->setClientCallbacks(new ClientCallbacks());
+    client->setClientCallbacks(callback);
 
-    //Attempts to establish a connection to server. If the conneciton fails connect will return
+    //Attempts to establish a connection to server. If the connection fails connect will return
     // false negated to true and the program will enter the loop and return false
+    Log.traceln("ClientHandler::connectToServer - Attempting to establish a connection to the "
+                "server");
     if (!client->connect(server)) {
+        Log.traceln("ClientHandler::connectToServer - Stop");
         return false;
     }
 
@@ -187,16 +228,20 @@ bool ClientHandler::connectToServer() {
     //This tries to get the service specified by the service UUID from the connected server. If
     // it is null, that service is not available so the client disconnects and the program
     // returns false
+    Log.traceln("ClientHandler::connectToServer - Attempting to get the service UUID");
     BLERemoteService *remoteService = client->getService(serviceUUID);
     if (remoteService == nullptr) {
         client->disconnect();
+        Log.traceln("ClientHandler::connectToServer - Stop");
         return false;
     }
 
     // See above but for IMU characteristc
+    Log.traceln("ClientHandler::connectToServer - Attempting to get the IMU characteristic UUID");
     IMUCharacteristic = remoteService->getCharacteristic(imuCharacteristicUUID);
     if (IMUCharacteristic == nullptr) {
         client->disconnect();
+        Log.traceln("ClientHandler::connectToServer - Stop");
         return false;
     }
 
@@ -214,6 +259,10 @@ bool ClientHandler::connectToServer() {
     }
 
     connected = true;
+
+    Log.infoln("ClientHandler::connectToServer - Connected to the server");
+    Log.traceln("ClientHandler::connectToServer - Stop");
+
     return connected;
 }
 
