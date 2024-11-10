@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/07/24
+// Last Modified: 11/09/24
 
 //================================================================================================//
 
@@ -72,10 +72,6 @@ constexpr uint32_t BAUD_RATE = 115200;
  * There are also three class constants that control scanning events. These can be adjusted in the
  * clientBLE.h file.
  */
-
-//================================================================================================//
-
-// What goes here?
 
 //================================================================================================//
 
