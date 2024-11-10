@@ -4,10 +4,19 @@
 
 #include "controller/actuator/clientHandler.h"
 
-void ClientCallbacks::onConnect(BLEClient *client) { /* Nothing to do */ }
+void ClientCallbacks::onConnect(BLEClient *client) {
+    Log.traceln("ClientCallbacks::onConnect - Start");
+    Log.infoln("ClientCallbacks::onConnect - Connection event occurred");
+    Log.traceln("ClientCallbacks::onConnect - Stop");
+}
 
 void ClientCallbacks::onDisconnect(BLEClient *client) {
+    Log.traceln("ClientCallbacks::onDisconnect - Start");
+    Log.warningln("ClientCallbacks::onDisconnect - Disconnection event occurred");
+
     ClientHandler::instance()->setConnected(false);
+
+    Log.traceln("ClientCallbacks::onDisconnect - Stop");
 }
 
 void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
@@ -18,11 +27,9 @@ void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
     // Check if the device contains the correct service UUIDs
     if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService
             (ClientHandler::instance()->getServiceUUID())) {
-        Log.infoln("AdvertisedDeviceCallbacks::onResult - Found a device with the correct service"
-                   " UUID");
-
         // Attempt to make a BLEAdvertisedDevice (the server)
-        auto *device = new(std::nothrow) BLEAdvertisedDevice(advertisedDevice);
+        auto *device = new(std::nothrow)
+        BLEAdvertisedDevice(advertisedDevice);
         if (!device) {
             Log.errorln("AdvertisedDeviceCallbacks::onResult - Memory allocation failed for "
                         "BLEAdvertisedDevice");
@@ -33,9 +40,13 @@ void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
         ClientHandler::instance()->setServer(device);
         ClientHandler::instance()->setAttemptConnect(true);
         ClientHandler::instance()->setInitiateScan(true);
+
+        Log.infoln("AdvertisedDeviceCallbacks::onResult - Found a device with the correct service"
+                   " UUID. Set connect flags to true");
     } else {
-        Log.infoln("AdvertisedDeviceCallbacks::onResult - Advertised device does not contain the "
-                   "correct service UUID");
+        Log.traceln("AdvertisedDeviceCallbacks::onResult - Advertised device does not contain "
+                    "the "
+                    "correct service UUID");
     }
 
     Log.traceln("AdvertisedDeviceCallbacks::onResult - Stop");
@@ -44,32 +55,37 @@ void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
 // Set static inst to null
 ClientHandler *ClientHandler::inst = nullptr;
 
-ClientHandler::~ClientHandler() { inst = nullptr; }
+ClientHandler::~ClientHandler() {
+    Log.traceln("ClientHandler::~ClientHandler - Start");
+    inst = nullptr;
+    Log.traceln("ClientHandler::~ClientHandler - Stop");
+}
 
-ErrorCode ClientHandler::initialize(const std::string &SERVICE_UUID,
-                                    const std::string &IMU_CHARACTERISTIC_UUID,
-                                    const std::string &DEVICE_NAME) {
+bool ClientHandler::initialize(const std::string &SERVICE_UUID,
+                               const std::string &IMU_CHARACTERISTIC_UUID,
+                               const std::string &DEVICE_NAME) {
     Log.traceln("ClientHandler::initialize - Start");
 
     // Only initialize once
     if (inst != nullptr) {
         Log.errorln("ClientHandler::initialize - Already initialized");
-        return CLIENT_ALREADY_INITIALIZED;
+        return false;
     }
 
     // Attempt to allocate memory for the singleton inst
-    inst = new(std::nothrow) ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+    inst = new(std::nothrow)
+    ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
     if (!inst) {
         Log.errorln("ClientHandler::initialize - Memory allocation failed for ClientHandler "
                     "instance");
-        return CLIENT_MEMORY_ALLOCATION_FAILED;
+        return false;
     }
 
     // Attempt to retrieve a Scan
     auto *scanner = BLEDevice::getScan();
     if (!scanner) {
         Log.errorln("ClientHandler::initialize - Failed to retrieve scanner");
-        return CLIENT_GET_SCANNER_FAILED;
+        return false;
     }
 
     // Attempt to retrieve an AdvertisedDeviceCallback
@@ -78,7 +94,7 @@ ErrorCode ClientHandler::initialize(const std::string &SERVICE_UUID,
         delete scanner;
         Log.errorln("ClientHandler::initialize - Memory allocation failed for "
                     "AdvertisedDeviceCallbacks");
-        return CLIENT_MEMORY_ALLOCATION_FAILED;
+        return false;
     }
 
     // Configure the scan
@@ -93,7 +109,7 @@ ErrorCode ClientHandler::initialize(const std::string &SERVICE_UUID,
 
     Log.infoln("ClientHandler::initialize - ClientHandler initialized successfully");
     Log.traceln("ClientHandler::initialize - Stop");
-    return NONE;
+    return true;
 }
 
 ClientHandler *ClientHandler::instance() {

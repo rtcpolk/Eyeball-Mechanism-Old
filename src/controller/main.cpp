@@ -54,8 +54,8 @@
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_ERROR;
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_WARNING;
 //constexpr uint8_t LOG_LEVEL = LOG_LEVEL_NOTICE;
-//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
-constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
+constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
 constexpr uint32_t BAUD_RATE = 115200;
 
 /*
@@ -74,8 +74,8 @@ constexpr uint32_t BAUD_RATE = 115200;
  *  DEVICE_NAME - The name of the device that the client is on
  */
 
-const std::string SERVICE_UUID = "";
-const std::string IMU_CHARACTERISTIC_UUID = "";
+const std::string SERVICE_UUID = "da2aa210-e2ab-4d96-8d94-8536ec5a2728";
+const std::string IMU_CHARACTERISTIC_UUID = "72b9a4be-85fe-4cd5-ae42-f32414542c5a";
 const std::string DEVICE_NAME = ""; // It seems to not connect when !empty
 
 
@@ -83,20 +83,36 @@ const std::string DEVICE_NAME = ""; // It seems to not connect when !empty
 
 //================================================================================================//
 
+/**
+ * Restart the ESP32
+ */
+void restart() {
+    Log.fatalln("Fatal error occurred. Restarting the ESP32");
+    ESP.restart();
+}
+
 void setup() {
     // Establish serial and logging
     Serial.begin(BAUD_RATE);
     Log.begin(LOG_LEVEL, &Serial, true);
-    Log.traceln("Serial and logging initialized");
+    Log.infoln("Serial and logging initialized");
 
     // Initialize the BLE Client
+    Log.infoln("Attempting to initialize ClientHandler");
     try {
-        Log.traceln("Attempting to initialize ClientHandler");
-        ErrorCode errorCode = ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID,
+        bool initialized = ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID,
                                                  DEVICE_NAME);
+
+        if (!initialized) {
+            restart();
+        }
 
     } catch (const std::exception& ex) {
         Log.errorln("ClientHandler::initialize - Exception caught: %s", ex.what());
+        restart();
+    } catch (...) {
+        Log.errorln("ClientHandler::initialize - Unknown Exception");
+        restart();
     }
 }
 

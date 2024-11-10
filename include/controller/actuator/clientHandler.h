@@ -8,7 +8,6 @@
 #include <memory>
 #include "BLEDevice.h"
 #include "ArduinoLog.h"
-#include "errorCodes.h"
 
 struct ClientCallbacks final : public BLEClientCallbacks {
     void onConnect(BLEClient*) override;
@@ -49,7 +48,7 @@ public:
      * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
      * @param CLIENT_NAME - The name for the BLE device
      */
-    static ErrorCode initialize(const std::string&, const std::string&, const
+    static bool initialize(const std::string&, const std::string&, const
     std::string&);
 
     /**
