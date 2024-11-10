@@ -3,34 +3,97 @@
 // Last Modified: 11/07/24
 
 #include "controller/actuator/clientHandler.h"
-#include "../../../lib/Arduino-Log/ArduinoLog.h"
+
+void ClientCallbacks::onConnect(BLEClient *client) { /* Nothing to do */ }
+
+void ClientCallbacks::onDisconnect(BLEClient *client) {
+    ClientHandler::instance()->setConnected(false);
+}
+
+void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
+    Log.traceln("AdvertisedDeviceCallbacks::onResult - Start");
+    Log.trace("BLE Advertised device found: ");
+    Log.traceln(advertisedDevice.toString().c_str());
+
+    // Check if the device contains the correct service UUIDs
+    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService
+            (ClientHandler::instance()->getServiceUUID())) {
+        Log.infoln("AdvertisedDeviceCallbacks::onResult - Found a device with the correct service"
+                   " UUID");
+
+        // Attempt to make a BLEAdvertisedDevice (the server)
+        auto *device = new(std::nothrow) BLEAdvertisedDevice(advertisedDevice);
+        if (!device) {
+            Log.errorln("AdvertisedDeviceCallbacks::onResult - Memory allocation failed for "
+                        "BLEAdvertisedDevice");
+        }
+
+        // Stop scan and set flags
+        BLEDevice::getScan()->stop();
+        ClientHandler::instance()->setServer(device);
+        ClientHandler::instance()->setAttemptConnect(true);
+        ClientHandler::instance()->setInitiateScan(true);
+    } else {
+        Log.infoln("AdvertisedDeviceCallbacks::onResult - Advertised device does not contain the "
+                   "correct service UUID");
+    }
+
+    Log.traceln("AdvertisedDeviceCallbacks::onResult - Stop");
+}
 
 // Set static inst to null
 ClientHandler *ClientHandler::inst = nullptr;
 
 ClientHandler::~ClientHandler() { inst = nullptr; }
 
-ClientHandler *ClientHandler::initialize(const std::string &SERVICE_UUID,
-                                         const std::string &IMU_CHARACTERISTIC_UUID,
-                                         const std::string &DEVICE_NAME) {
-    Log.info("Client has been initialized");
+ErrorCode ClientHandler::initialize(const std::string &SERVICE_UUID,
+                                    const std::string &IMU_CHARACTERISTIC_UUID,
+                                    const std::string &DEVICE_NAME) {
+    Log.traceln("ClientHandler::initialize - Start");
+
     // Only initialize once
     if (inst != nullptr) {
-        throw std::runtime_error("ClientHandler::initialize can only be called once");
+        Log.errorln("ClientHandler::initialize - Already initialized");
+        return CLIENT_ALREADY_INITIALIZED;
     }
 
-    inst = new ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+    // Attempt to allocate memory for the singleton inst
+    inst = new(std::nothrow) ClientHandler(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+    if (!inst) {
+        Log.errorln("ClientHandler::initialize - Memory allocation failed for ClientHandler "
+                    "instance");
+        return CLIENT_MEMORY_ALLOCATION_FAILED;
+    }
 
-    // Retrieve a scanner and...
-    BLEScan *scanner = BLEDevice::getScan();
-    scanner->setAdvertisedDeviceCallbacks(new AdvertisedDeviceCallbacks());
+    // Attempt to retrieve a Scan
+    auto *scanner = BLEDevice::getScan();
+    if (!scanner) {
+        Log.errorln("ClientHandler::initialize - Failed to retrieve scanner");
+        return CLIENT_GET_SCANNER_FAILED;
+    }
+
+    // Attempt to retrieve an AdvertisedDeviceCallback
+    auto callback = std::make_shared<AdvertisedDeviceCallbacks>();
+    if (!callback) {
+        delete scanner;
+        Log.errorln("ClientHandler::initialize - Memory allocation failed for "
+                    "AdvertisedDeviceCallbacks");
+        return CLIENT_MEMORY_ALLOCATION_FAILED;
+    }
+
+    // Configure the scan
+    scanner->setAdvertisedDeviceCallbacks(callback.get());
     scanner->setInterval(SCAN_INTERVAL);
     scanner->setWindow(SCAN_WINDOW);
     scanner->setActiveScan(true);
-    Log.info("Client has been initialized");
+
+    // Scan for devices. This ends up calling onResult
+    Log.infoln("ClientHandler::initialize - Starting BLE scan");
     scanner->start(SCAN_DURATION, false);
 
-    return inst;
+    Log.infoln("ClientHandler::initialize - ClientHandler initialized successfully");
+    Log.traceln("ClientHandler::initialize - Stop");
+    return NONE;
 }
 
 ClientHandler *ClientHandler::instance() {
@@ -64,6 +127,7 @@ void ClientHandler::setConnected(const bool &newConnected) {
 }
 
 void ClientHandler::setServer(BLEAdvertisedDevice *newServer) {
+    delete server;
     server = newServer;
 }
 
@@ -102,9 +166,6 @@ bool ClientHandler::connectToServer() {
     if (!client->connect(server)) {
         return false;
     }
-
-    //probably dont need this
-    client->setMTU(517);
 
     //todo perhaps do this in a more dynamic fashion
     //This tries to get the service specified by the service UUID from the connected server. If
@@ -150,27 +211,6 @@ void ClientHandler::notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, u
         memcpy(&qz, &data[12], sizeof(float));
     }
 }
-
-void ClientCallbacks::onConnect(BLEClient *client) { /* Nothing to do */ }
-
-void ClientCallbacks::onDisconnect(BLEClient *client) {
-    ClientHandler::instance()->setConnected(false);
-}
-
-//Triggered for each advertised ble device found during an active scan. bascially what do to when
-// you encounter a new device
-void AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice advertisedDevice) {
-    // We have found a device, let us now see if it contains the service we are looking for.
-    if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService
-            (ClientHandler::instance()->getServiceUUID())) {
-
-        BLEDevice::getScan()->stop();
-        ClientHandler::instance()->setServer(new BLEAdvertisedDevice(advertisedDevice));
-        ClientHandler::instance()->setAttemptConnect(true);
-        ClientHandler::instance()->setInitiateScan(true);
-
-    }  // Found our server
-}  // onResult
 
 // maybe have the q's be member variables and then have access methods for the rest of the
 // program to access the stuff

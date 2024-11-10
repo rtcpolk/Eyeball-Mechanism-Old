@@ -5,7 +5,10 @@
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
 
+#include <memory>
 #include "BLEDevice.h"
+#include "ArduinoLog.h"
+#include "errorCodes.h"
 
 struct ClientCallbacks final : public BLEClientCallbacks {
     void onConnect(BLEClient*) override;
@@ -13,9 +16,16 @@ struct ClientCallbacks final : public BLEClientCallbacks {
     void onDisconnect(BLEClient*) override;
 };
 
+/**
+ * This is a struct that implements the program's AdvertisedDeviceCallback method. It inherits
+ * from the BLE Library's abstract BLEAdvertisedDeviceCallbacks class
+ */
 struct AdvertisedDeviceCallbacks final : public BLEAdvertisedDeviceCallbacks {
     /**
-     * Called for each advertising BLE server.
+     * This method defines what to do when a new device is found during a scan. After
+     * scanner->start is called, the program checks for devices and this method is called
+     * for every device that is discovered. It checks if the device has the service and
+     * characteristic UUIDs that the client is looking for
      */
     void onResult(BLEAdvertisedDevice advertisedDevice) override;
 };
@@ -39,7 +49,7 @@ public:
      * @param IMU_CHARACTERISTIC_UUID - The UUID of the IMU characteristic
      * @param CLIENT_NAME - The name for the BLE device
      */
-    static ClientHandler *initialize(const std::string&, const std::string&, const
+    static ErrorCode initialize(const std::string&, const std::string&, const
     std::string&);
 
     /**
@@ -58,7 +68,7 @@ public:
      * @brief Set the value of server
      * @param newServer - The new value to set server to
      */
-     void setServer(BLEAdvertisedDevice*);
+    void setServer(BLEAdvertisedDevice*);
 
      /**
       * @brief Set the value of attemptConnect
@@ -103,7 +113,7 @@ private:
     bool attemptConnect; // If the client should attempt to connect to a server
     bool connected;      // If the client is currently connected
     bool initiateScan; // If a new scan should be initiated after a disconnection
-    BLEAdvertisedDevice *server;                // Ptr to the remote server
+    BLEAdvertisedDevice* server; // Ptr to the remote server
     BLERemoteCharacteristic *IMUCharacteristic; // Ptr to the IMU's characteristic
 
     // Class Constants

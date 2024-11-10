@@ -21,7 +21,7 @@
 
 //================================================================================================//
 
-// #include the necessary header files, don't change these
+// #include the necessary header files - don't change these
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include "controller/actuator/clientHandler.h"
@@ -30,7 +30,7 @@
  * Configure Logging
  *
  * This section determines the level of logging within the program. The messages are outputted
- * to the Serial monitor. THe following log levels are available:
+ * to the Serial monitor. The following log levels are available:
  *      0 - LOG_LEVEL_SILENT     no output
  *      1 - LOG_LEVEL_FATAL      fatal errors
  *      2 - LOG_LEVEL_ERROR      all errors
@@ -38,12 +38,15 @@
  *      4 - LOG_LEVEL_NOTICE     errors, warnings and notices
  *      5 - LOG_LEVEL_TRACE      errors, warnings, notices & traces
  *      6 - LOG_LEVEL_VERBOSE    all
- * To completely remove logging, go into the ArduinoLog.h file and uncomment line 38 to define
- * DISABLE_LOGGING.
+ * Uncomment one of the lines below to select the desired logging level. To completely remove
+ * logging, go into the ArduinoLog.h file and uncomment line 38 to define DISABLE_LOGGING.
+ *
+ * Set the baud rate for serial communication. This should match the value in the platformio.ini
+ * file.
  * 
- * LOG_LEVEL - The level of messages to show. Uncomment the desired level
- * BAUD_RATE - Set the baud rate for serial communication. This should match the value in the
- *             platformio.ini file
+ * Variables:
+ *  LOG_LEVEL - The level of messages to show. Uncomment the desired level
+ *  BAUD_RATE - The baud rate for serial communication
  */
 
 //constexpr uint8_t LOG_LEVEL = LOG_LEVEL_SILENT;
@@ -57,29 +60,44 @@ constexpr uint32_t BAUD_RATE = 115200;
 
 /*
  * Configure BLE Client
+ *
+ * This section configures the BLE Client by setting the UUIDs and device name. The UUIDs need to
+ * match those set in server.cpp in order for the client to connect properly. New UUIDs can be
+ * generated at https://www.uuidgenerator.net/
+ *
+ * In addition to the variables below, there are three class constants that control scanning
+ * events. Those can be adjusted in the clientHandler.h file if need be.
+ *
+ * Variables:
+ *  SERVICE_UUID - The UUID for the service the client should connect to
+ *  IMU_CHARACTERISTIC_UUID - The UUID for the IMU characteristic
+ *  DEVICE_NAME - The name of the device that the client is on
  */
-/**
- * @brief Configure the BLE Client - ESP32
- *
- * The variables below provide the UUIDs for the BLE client. These need to match the UUIDs set in
- * *'server.h* otherwise the client will not be able to connect to the server
- * properly. New UUIDs can be generated at https://www.uuidgenerator.net/
- *
- * @param SERVICE_UUID - The UUID for the service the client should connect to
- * @param IMU_CHARACTERISTIC_UUID - The UUID for the IMU characteristic
- * @param CLIENT_NAME - The name of the BLE Client
- *
- * There are also three class constants that control scanning events. These can be adjusted in the
- * clientBLE.h file.
- */
+
+const std::string SERVICE_UUID = "";
+const std::string IMU_CHARACTERISTIC_UUID = "";
+const std::string DEVICE_NAME = ""; // It seems to not connect when !empty
+
+
+
 
 //================================================================================================//
 
 void setup() {
+    // Establish serial and logging
     Serial.begin(BAUD_RATE);
     Log.begin(LOG_LEVEL, &Serial, true);
+    Log.traceln("Serial and logging initialized");
 
-    ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME);
+    // Initialize the BLE Client
+    try {
+        Log.traceln("Attempting to initialize ClientHandler");
+        ErrorCode errorCode = ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID,
+                                                 DEVICE_NAME);
+
+    } catch (const std::exception& ex) {
+        Log.errorln("ClientHandler::initialize - Exception caught: %s", ex.what());
+    }
 }
 
 void loop() {
