@@ -56,8 +56,8 @@
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_ERROR;
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_WARNING;
 //constexpr uint8_t LOG_LEVEL = LOG_LEVEL_NOTICE;
-//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
-constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
+constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
 constexpr uint32_t BAUD_RATE = 115200;
 
 /*
@@ -107,12 +107,25 @@ constexpr std::array<std::array<uint8_t, 2>, 3> encoderPins = {FIRST_ENCODER_PIN
 
 //================================================================================================//
 
+TaskHandle_t encoderLoopHandle = nullptr;
+int count;
+
 /**
  * Restart the ESP32
  */
 void restart() {
     Log.fatalln("Fatal error occurred. Restarting the ESP32");
     ESP.restart();
+}
+
+/**
+ * A task for the EncoderHandler loop to be run in the background
+ *
+ * @param param - Any parameters to be used by the task (none)
+ */
+void encoderLoopTask(void *param) {
+    Log.infoln("Starting encoder loop");
+    EncoderHandler::instance()->loop();
 }
 
 void setup() {
@@ -131,9 +144,42 @@ void setup() {
         Log.errorln("Failed to initialize EncoderHandler - Unknown Error");
         restart();
     }
+
+    // Create background task for the encoder
+    BaseType_t result = xTaskCreate(encoderLoopTask, "EncoderHandler::Loop",
+                                    2048, nullptr, 1, &encoderLoopHandle);
+
+    if (result != pdPASS) {
+        Log.errorln("Failed to create encoder loop task");
+        restart();
+    }
+
+
 }
 
 void loop() {
-    EncoderHandler::instance()->loop();
-    Log.traceln("exited the loop");
+    if (count == 3) {
+        Log.infoln("Suspending encoder loop");
+        vTaskSuspend(encoderLoopHandle);
+    }
+
+    if (count == 6) {
+        Log.infoln("Resuming encoder loop");
+        vTaskResume(encoderLoopHandle);
+    }
+
+    if (count == 9) {
+        Log.infoln("Suspending encoder loop");
+        vTaskSuspend(encoderLoopHandle);
+    }
+
+    if (count == 12) {
+        Log.infoln("Resuming encoder loop");
+        vTaskResume(encoderLoopHandle);
+    }
+
+    Log.infoln("I'm looping");
+
+    ++count;
+    delay(1000);
 }

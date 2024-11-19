@@ -42,6 +42,10 @@ EncoderHandler *EncoderHandler::instance() {
     return inst;
 }
 
+const std::array<int64_t, 3> &EncoderHandler::getCounts() const noexcept {
+    return counts;
+}
+
 void EncoderHandler::loop() {
     while (true) {
         EncoderHandler::instance()->updateCounts();
@@ -60,10 +64,6 @@ void EncoderHandler::updateCounts() noexcept {
 
     Log.verboseln("\tEncoder Counts:\t%d\t%d\t%d", counts[0], counts[1], counts[2]);
     Log.traceln("EncoderHandler::updateCounts - End");
-}
-
-const std::array<int64_t, 3> &EncoderHandler::getCounts() const noexcept {
-    return counts;
 }
 
 void EncoderHandler::resetCounts() noexcept {

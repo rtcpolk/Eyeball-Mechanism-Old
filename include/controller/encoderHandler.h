@@ -17,6 +17,7 @@ class EncoderHandler {
 public:
     // Delete copy-constructor and assignment-op
     EncoderHandler(const EncoderHandler &) = delete;
+
     EncoderHandler &operator=(const EncoderHandler &) = delete;
 
     // Destructor
@@ -37,6 +38,12 @@ public:
     static EncoderHandler *instance();
 
     /**
+    * Get the encoder counts
+    * @return A reference to the array containing the encoder counts
+    */
+    const std::array<int64_t, 3> &getCounts() const noexcept;
+
+    /**
      * Continuously update the encoder counts
      */
     [[noreturn]] void loop();
@@ -51,12 +58,6 @@ private:
      * Updates each encoder's count
      */
     void updateCounts() noexcept;
-
-    /**
-     * Get the encoder counts
-     * @return A reference to the array containing the encoder counts
-     */
-    const std::array<int64_t, 3> &getCounts() const noexcept;
 
     /**
      * Resets each of the encoder counts to 0. Used for calibration
