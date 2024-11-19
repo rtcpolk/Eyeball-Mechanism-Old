@@ -108,6 +108,7 @@ constexpr std::array<std::array<uint8_t, 2>, 3> encoderPins = {FIRST_ENCODER_PIN
 //================================================================================================//
 
 TaskHandle_t encoderLoopHandle = nullptr;
+TaskHandle_t clientLoopHandle = nullptr;
 int count;
 
 /**
@@ -124,8 +125,18 @@ void restart() {
  * @param param - Any parameters to be used by the task (none)
  */
 void encoderLoopTask(void *param) {
-    Log.infoln("Starting encoder loop");
+    Log.infoln("Starting EncoderHandler loop");
     EncoderHandler::instance()->loop();
+}
+
+/**
+ * A task for the ClientHandler loop to be run in the background
+ *
+ * @param param - Any parameters to be used by the task (none)
+ */
+void clientLoopTask(void *param) {
+    Log.infoln("Starting ClientHandler loop");
+    ClientHandler::instance()->loop();
 }
 
 void setup() {
@@ -146,15 +157,33 @@ void setup() {
     }
 
     // Create background task for the encoder
-    BaseType_t result = xTaskCreate(encoderLoopTask, "EncoderHandler::Loop",
+    BaseType_t encoderResult = xTaskCreate(encoderLoopTask, "EncoderHandler::Loop",
                                     2048, nullptr, 1, &encoderLoopHandle);
 
-    if (result != pdPASS) {
-        Log.errorln("Failed to create encoder loop task");
+    if (encoderResult != pdPASS) {
+        Log.errorln("Failed to create encoderLoopTask");
         restart();
     }
 
+    // Initialize the BLE Client
+    try {
+        count = 0; //todo update this with client when ready
+    } catch (const std::exception &ex) {
+        Log.errorln("Failed to initialize ClientHandler - %s", ex.what());
+        restart();
+    } catch (...) {
+        Log.errorln("Failed to initialize ClientHandler - Unknown Error");
+        restart();
+    }
 
+    // Create background task for the client
+    BaseType_t clientResult = xTaskCreate(clientLoopTask, "EncoderHandler::Loop",
+                                    2048, nullptr, 1, &encoderLoopHandle);
+
+    if (clientResult != pdPASS) {
+        Log.errorln("Failed to create clientLoopTask");
+        restart();
+    }
 }
 
 void loop() {
