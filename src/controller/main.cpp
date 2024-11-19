@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/09/24
+// Last Modified: 11/19/24
 
 //================================================================================================//
 
@@ -17,20 +17,22 @@
  * order:
  *      Logging
  *      BLE Client
+ *      Encoders
  */
 
 //================================================================================================//
 
-// #include the necessary header files - don't change these
+// #include the necessary header files - Do not edit
 #include <Arduino.h>
 #include <ArduinoLog.h>
-#include "controller/actuator/clientHandler.h"
+#include "controller/clientHandler.h"
+#include "controller/encoderHandler.h"
 
 /*
  * Configure Logging
  *
- * This section determines the level of logging within the program. The messages are outputted
- * to the Serial monitor. The following log levels are available:
+ * This section determines the level of logging within the program. The messages are written to
+ * the Serial monitor. The following log levels are available:
  *      0 - LOG_LEVEL_SILENT     no output
  *      1 - LOG_LEVEL_FATAL      fatal errors
  *      2 - LOG_LEVEL_ERROR      all errors
@@ -45,8 +47,8 @@
  * file.
  * 
  * Variables:
- *  LOG_LEVEL - The level of messages to show. Uncomment the desired level
- *  BAUD_RATE - The baud rate for serial communication
+ *   LOG_LEVEL - The level of messages to show. Uncomment the desired level
+ *   BAUD_RATE - The baud rate for serial communication
  */
 
 //constexpr uint8_t LOG_LEVEL = LOG_LEVEL_SILENT;
@@ -54,32 +56,54 @@
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_ERROR;
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_WARNING;
 //constexpr uint8_t LOG_LEVEL = LOG_LEVEL_NOTICE;
-constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
-//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
+constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
 constexpr uint32_t BAUD_RATE = 115200;
 
 /*
  * Configure BLE Client
  *
  * This section configures the BLE Client by setting the UUIDs and device name. The UUIDs need to
- * match those set in server.cpp in order for the client to connect properly. New UUIDs can be
- * generated at https://www.uuidgenerator.net/
+ * match those set in server/server.cpp in order for the client to connect properly. New UUIDs
+ * can be generated at https://www.uuidgenerator.net/
  *
  * In addition to the variables below, there are three class constants that control scanning
- * events. Those can be adjusted in the clientHandler.h file if need be.
+ * events. They do not need to be adjusted however they can be found in the clientHandler.h file if
+ * further optimization is to be done.
  *
  * Variables:
- *  SERVICE_UUID - The UUID for the service the client should connect to
- *  IMU_CHARACTERISTIC_UUID - The UUID for the IMU characteristic
- *  DEVICE_NAME - The name of the device that the client is on
+ *   SERVICE_UUID - The UUID for the service the client should connect to
+ *   IMU_CHARACTERISTIC_UUID - The UUID for the IMU characteristic
+ *   DEVICE_NAME - The name of the device that the client is on
  */
 
 const std::string SERVICE_UUID = "da2aa210-e2ab-4d96-8d94-8536ec5a2728";
 const std::string IMU_CHARACTERISTIC_UUID = "72b9a4be-85fe-4cd5-ae42-f32414542c5a";
 const std::string DEVICE_NAME = ""; // It seems to not connect when !empty
 
-
-
+/*
+ * Configure Encoders
+ *
+ * This section configures the encoders that track the motor shafts' rotation. Set the following
+ * pin variables to the corresponding GPIO pins on the ESP32. Do not edit the encoderPins variable
+ *
+ * Variables:
+ *   #_ENCODER_PIN_A - The Channel A pin for the # encoder. Corresponds to the yellow wire
+ *   #_ENCODER_PIN_B - The Channel B pin for the # encoder. Corresponds to the white wire
+ *   encoderPins - An array that holds all the encoder pins. Do not edit
+ */
+constexpr uint8_t FIRST_ENCODER_PIN_A = 15;
+constexpr uint8_t FIRST_ENCODER_PIN_B = 16;
+constexpr uint8_t SECOND_ENCODER_PIN_A = 17;
+constexpr uint8_t SECOND_ENCODER_PIN_B = 18;
+constexpr uint8_t THIRD_ENCODER_PIN_A = 19;
+constexpr uint8_t THIRD_ENCODER_PIN_B = 20;
+constexpr std::array<std::array<uint8_t, 2>, 3> encoderPins = {FIRST_ENCODER_PIN_A,
+                                                               FIRST_ENCODER_PIN_B,
+                                                               SECOND_ENCODER_PIN_A,
+                                                               SECOND_ENCODER_PIN_B,
+                                                               THIRD_ENCODER_PIN_A,
+                                                               THIRD_ENCODER_PIN_B};
 
 //================================================================================================//
 
@@ -97,26 +121,19 @@ void setup() {
     Log.begin(LOG_LEVEL, &Serial, true);
     Log.infoln("Serial and logging initialized");
 
-    // Initialize the BLE Client
-    Log.infoln("Attempting to initialize ClientHandler");
+    // Initialize the EncoderHandler
     try {
-        bool initialized = ClientHandler::initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID,
-                                                 DEVICE_NAME);
-
-        if (!initialized) {
-            restart();
-        }
-
-    } catch (const std::exception& ex) {
-        Log.errorln("ClientHandler::initialize - Exception caught: %s", ex.what());
+        EncoderHandler::instance()->initialize(encoderPins);
+    } catch (const std::exception &ex) {
+        Log.errorln("Failed to initialize EncoderHandler - %s", ex.what());
         restart();
     } catch (...) {
-        Log.errorln("ClientHandler::initialize - Unknown Exception");
+        Log.errorln("Failed to initialize EncoderHandler - Unknown Error");
         restart();
     }
-
-    ClientHandler::instance()->loop();
 }
 
 void loop() {
+    EncoderHandler::instance()->loop();
+    Log.traceln("exited the loop");
 }

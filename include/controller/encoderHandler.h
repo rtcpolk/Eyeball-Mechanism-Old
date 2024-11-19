@@ -1,92 +1,73 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/18/2024
+// Last Modified: 11/19/2024
 
 #ifndef ENCODERHANDLER_H
 #define ENCODERHANDLER_H
 
 #include <Arduino.h>
-#include <ArduinoLog.h>
+#include "ArduinoLog.h"
+#include "C:\Users\rober\blink\lib\ESP32Encoder\src\ESP32Encoder.h"
+#include <array>
 
 /**
- * A struct to represent an encoder
- */
-struct Encoder {
-    // Don't allow default construction
-    Encoder() = delete;
-
-    Encoder &operator=(const Encoder &) = delete;
-
-    // Default copy-constructor, assignment-op, and destructor
-    Encoder(const Encoder &) = default;
-
-    ~Encoder() = default;
-
-    /**
-     * Primary Constructor
-     *
-     * @param PIN_A - The pin for channel A
-     * @param PIN_B - The pin for channel B
-     */
-    Encoder(const uint8_t &PIN_A, const uint8_t &PIN_B);
-
-    // Member variables
-    const uint8_t pinA; // The pin for channel A
-    const uint8_t pinB; // The pin for channel B
-};
-
-/**
- * A class to handle all of the encoder states and access their data
+ * A class to handle all the 3 encoders. It manages their states and allows access to their data
  */
 class EncoderHandler {
 public:
-    // Delete constructor, copy-constructor, and assignment-op
-    EncoderHandler() = delete;
-
+    // Delete copy-constructor and assignment-op
     EncoderHandler(const EncoderHandler &) = delete;
-
     EncoderHandler &operator=(const EncoderHandler &) = delete;
 
     // Destructor
-    ~EncoderHandler();
+    ~EncoderHandler() noexcept;
 
     /**
      * Initialize the Encoder Handler by creating the singleton instance
      *
-     * @param FIRST_ENCODER_PIN_A - Channel A pin for the first encoder
-     * @param FIRST_ENCODER_PIN_B - Channel B pin for the first encoder
-     * @param SECOND_ENCODER_PIN_A - Channel A pin for the second encoder
-     * @param SECOND_ENCODER_PIN_B - Channel B pin for the second encoder
-     * @param THIRD_ENCODER_PIN_A - Channel A pin for the third encoder
-     * @param THIRD_ENCODER_PIN_B - Channel B pin for the third encoder
+     * @param pins - An array that holds all of the pins for the encoders
+     *               {Channel A pin, Channel B pin}
      */
-    static void initialize(const uint8_t &FIRST_ENCODER_PIN_A, const uint8_t &FIRST_ENCODER_PIN_B,
-                           const uint8_t &SECOND_ENCODER_PIN_A, const uint8_t &SECOND_ENCODER_PIN_B,
-                           const uint8_t &THIRD_ENCODER_PIN_A, const uint8_t &THIRD_ENCODER_PIN_B);
+    void initialize(const std::array<std::array<uint8_t, 2>, 3> &pins);
 
-
+    /**
+     * Get the singleton EncoderHandler instance
+     * @return The instance ptr
+     */
     static EncoderHandler *instance();
+
+    /**
+     * Continuously update the encoder counts
+     */
+    [[noreturn]] void loop();
 
 private:
     /**
      * Primary Constructor
-     *
-     * @param FIRST_ENCODER_PIN_A - Channel A pin for the first encoder
-     * @param FIRST_ENCODER_PIN_B - Channel B pin for the first encoder
-     * @param SECOND_ENCODER_PIN_A - Channel A pin for the second encoder
-     * @param SECOND_ENCODER_PIN_B - Channel B pin for the second encoder
-     * @param THIRD_ENCODER_PIN_A - Channel A pin for the third encoder
-     * @param THIRD_ENCODER_PIN_B - Channel B pin for the third encoder
      */
-    EncoderHandler(const uint8_t &FIRST_ENCODER_PIN_A, const uint8_t &FIRST_ENCODER_PIN_B,
-                   const uint8_t &SECOND_ENCODER_PIN_A, const uint8_t &SECOND_ENCODER_PIN_B,
-                   const uint8_t &THIRD_ENCODER_PIN_A, const uint8_t &THIRD_ENCODER_PIN_B);
+    EncoderHandler();
+
+    /**
+     * Updates each encoder's count
+     */
+    void updateCounts() noexcept;
+
+    /**
+     * Get the encoder counts
+     * @return A reference to the array containing the encoder counts
+     */
+    const std::array<int64_t, 3> &getCounts() const noexcept;
+
+    /**
+     * Resets each of the encoder counts to 0. Used for calibration
+     */
+    void resetCounts() noexcept;
 
     // Member variables
     static EncoderHandler *inst; // Ptr to the singleton inst
-    Encoder firstEncoder;   // First encoder
-    Encoder secondEncoder;   // Second encoder
-    Encoder thirdEncoder;   // Third encoder
+    static bool initialized; // Initialization flag
+    std::array<ESP32Encoder, 3> encoders; // Array to hold the encoders
+    std::array<int64_t, 3> counts;  // Array to hold the encoder counts
 };
 
 #endif // ENCODERHANDLER_H
