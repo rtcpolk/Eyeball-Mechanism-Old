@@ -114,11 +114,25 @@ public:
      */
     BLEUUID getServiceUUID() const;
 
+    bool getAttemptConnect() const;
+
+    bool getConnected() const;
+
+    bool getInitiateScan() const;
+
     /**
      * The main loop that runs the client. Looks at if it should attempt to connect to a server
      * and if it is connected. This is an infinite loop
      */
-    [[noreturn]] void loop();
+    void loop();
+
+    /**
+ * Attempts to connect to a server. It checks if the server has the proper service and
+ * characteristic UUIDs and tries to establish a connection
+ *
+ * @return True if successful
+ */
+    bool connectToServer();
 
 private:
     /**
@@ -136,7 +150,7 @@ private:
      *
      * @return True if successful
      */
-    bool connectToServer();
+   // bool connectToServer();
 
     /**
      * This method defines what to do when the characteristic sends a notification.

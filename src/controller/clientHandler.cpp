@@ -135,28 +135,8 @@ ClientHandler *ClientHandler::instance() {
     return inst;
 }
 
-[[noreturn]] void ClientHandler::loop() {
+void ClientHandler::loop() {
     Log.traceln("ClientHandler::loop - Start");
-
-    while (true) {
-        if (attemptConnect) {
-            connectToServer();
-
-            if (connectToServer()) {
-                Log.infoln("ClientHandler::loop - Client is connected to the server");
-            } else {
-                //we are not connected
-            }
-
-            attemptConnect = false;
-        }
-
-        if (connected) {
-            // do stuff once we are connected
-        } else if (initiateScan) {
-            BLEDevice::getScan()->start(0);
-        }
-    }
 }
 
 void ClientHandler::setConnected(const bool &newConnected) {
@@ -202,7 +182,7 @@ ClientHandler::ClientHandler(const std::string &SERVICE_UUID,
                              const std::string &IMU_CHARACTERISTIC_UUID,
                              const std::string &DEVICE_NAME)
         : serviceUUID(SERVICE_UUID), imuCharacteristicUUID(IMU_CHARACTERISTIC_UUID),
-          attemptConnect(false), connected(false), initiateScan(false), server
+          attemptConnect(false), connected(false), initiateScan(true), server
                   (nullptr), IMUCharacteristic(nullptr) {
     Log.traceln("ClientHandler::ClientHandler - Start");
 
@@ -298,9 +278,19 @@ void ClientHandler::notifyCallback(BLERemoteCharacteristic *IMUCharacteristic, u
         memcpy(&qx, &data[4], sizeof(float));
         memcpy(&qy, &data[8], sizeof(float));
         memcpy(&qz, &data[12], sizeof(float));
+
+        Serial.print("w:\t");
+        Serial.print(qw);
+        Serial.print("x:\t");
+        Serial.print(qx);
+        Serial.print("y:\t");
+        Serial.print(qy);
+        Serial.print("z:\t");
+        Serial.print(qz);
     } else {
         Log.warningln("ClientHandler::notifyCallback - Data is not of length 16");
     }
+
 
     Log.traceln("ClientHandler::notifyCallback - Stop");
 }
@@ -326,3 +316,15 @@ Inside notifyCallback, you extract the quaternion values (represented as floats)
 This is where the actual data handling happens: you can then use the quaternion values (qw, qx, qy, qz) for whatever processing you need, such as sensor fusion or displaying the IMU data.*/
 
 //todo add logging and exception safety
+
+bool ClientHandler::getAttemptConnect() const {
+    return attemptConnect;
+}
+
+bool ClientHandler::getConnected() const {
+    return connected;
+}
+
+bool ClientHandler::getInitiateScan() const {
+    return initiateScan;
+}
