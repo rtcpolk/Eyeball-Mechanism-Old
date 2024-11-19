@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 #include "ArduinoLog.h"
-#include "C:\Users\rober\blink\lib\ESP32Encoder\src\ESP32Encoder.h"
+#include "ESP32Encoder.h"
 #include <array>
 
 /**
