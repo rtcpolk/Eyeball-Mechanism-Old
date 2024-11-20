@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/07/24
 
-#include "controller/actuator/clientHandler.h"
+#include "controller/clientHandler.h"
 
 void ClientCallbacks::onConnect(BLEClient *client) {
     Log.traceln("ClientCallbacks::onConnect - Start");

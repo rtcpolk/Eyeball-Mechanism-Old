@@ -6,7 +6,7 @@
 
 /*
  * Welcome to the inner workings of BLINK's eyeball mechanism - the brain to the eye if you will.
- * This is the main program that first configures the program for logging and to interface with
+ * This is the main program which first configures the program for logging and to interface with
  * the physical components of the mechanism. It then runs the general control loop. The control
  * loop...
  *
@@ -120,7 +120,7 @@ void restart() {
 }
 
 /**
- * A task for the EncoderHandler loop to be run in the background
+ * A freeRTOS task for the EncoderHandler loop
  *
  * @param param - Any parameters to be used by the task (none)
  */
@@ -130,7 +130,7 @@ void encoderLoopTask(void *param) {
 }
 
 /**
- * A task for the ClientHandler loop to be run in the background
+ * A freeRTOS task for the ClientHandler loop
  *
  * @param param - Any parameters to be used by the task (none)
  */
@@ -178,7 +178,7 @@ void setup() {
 
     // Create background task for the client
     BaseType_t clientResult = xTaskCreate(clientLoopTask, "EncoderHandler::Loop",
-                                    2048, nullptr, 1, &encoderLoopHandle);
+                                    2048, nullptr, 2, &encoderLoopHandle);
 
     if (clientResult != pdPASS) {
         Log.errorln("Failed to create clientLoopTask");
