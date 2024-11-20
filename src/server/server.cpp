@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <NimBLEDevice.h>
+#include "C:\Users\rober\blink\lib\I2Cdev\I2Cdev.h"
+#include "C:\Users\rober\blink\lib\MPU6050\MPU6050_6Axis_MotionApps20.h"
 
 /*
  * Configure Logging
