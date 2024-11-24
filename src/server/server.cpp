@@ -65,7 +65,7 @@ constexpr uint32_t BAUD_RATE = 115200;  // The baud rate for serial communicatio
 // Configuration Variables
 const std::string SERVICE_UUID =
         "da2aa210-e2ab-4d96-8d94-8536ec5a2728"; // The UUID for the service the client should
-                                                // connect to
+// connect to
 const std::string IMU_CHARACTERISTIC_UUID =
         "72b9a4be-85fe-4cd5-ae42-f32414542c5a"; // The UUID for the IMU characteristic
 const std::string DEVICE_NAME = ""; // The name of the device that the client is on
@@ -106,11 +106,50 @@ uint8_t quaternionData[16]; // Buffer to hold the 4 quaternion floats [wxyz]
 
 //================================================================================================//
 
+/**
+ * A struct to define what to do for server callbacks
+ */
 struct ServerCallbacks final : public NimBLEServerCallbacks {
+    /**
+     * Called for connection events. Provides logging messages
+     *
+     * @param connectedServer - The server that had the connection event
+     * @param connInfo - The connection info
+     */
+    void onConnect(NimBLEServer *connectedServer, NimBLEConnInfo &connInfo) {
+        Log.trace("Client Address: ");
+        Log.traceln(connInfo.getAddress().toString().c_str());
+        Log.infoln("Connected to a client");
+    }
+
+    /**
+     * Called for disconnection events. Provides logging messages and starts advertising
+     *
+     * @param disconnectedServer - The server that had the disconnection event
+     * @param connInfo - The disconnection info
+     * @param reason - The reason for disconnect
+     */
+    void onDisconnect(NimBLEServer *disconnectedServer, NimBLEConnInfo &connInfo, int reason) {
+        Log.trace("Client Address: ");
+        Log.traceln(connInfo.getAddress().toString().c_str());
+        Log.warningln("Client disconnected");
+        Log.infoln("Starting advertising");
+        NimBLEDevice::startAdvertising();
+    }
 };
+
+/**
+ * A struct to define what to do for characteristic callbacks
+ */
 struct CharacteristicCallbacks final : public NimBLECharacteristicCallbacks {
+    //todo do i want this?
 };
+
+/**
+ * A struct to define what to do for descriptor callbacks
+ */
 struct DescriptorCallbacks final : public NimBLEDescriptorCallbacks {
+    //todo do i want this?
 };
 
 //================================================================================================//
@@ -120,24 +159,56 @@ static ServerCallbacks serverCallback;
 static CharacteristicCallbacks characteristicCallback;
 static DescriptorCallbacks descriptorCallback;
 
+/**
+ * Restart the ESP32
+ */
 void restart() {
     Log.fatalln("Fatal error occurred. Restarting the ESP32");
     ESP.restart();
 }
 
+/**
+ * Establish a BLE server and begin advertising. It creates the device, server, service,
+ * characteristic, and descriptor. It then starts teh service and begins advertising
+ *
+ * 2902 descriptors are created automatically within the library for characteristics that have
+ * notify or indicate
+ */
 void setupBLEServer() {
     // Initialize BLE Device
     NimBLEDevice::init(DEVICE_NAME);
+    Log.traceln("BLE device created");
 
     // Create the server
     server = NimBLEDevice::createServer();
     server->setCallbacks(&serverCallback);
+    Log.traceln("Server created");
 
-    // Create service and characteristics
+    // Create service and
     NimBLEService *eyeballService = server->createService(SERVICE_UUID);
-//    NimBLECharacteristic *IMUCharacterisitc = eyeballService->createCharacteristic
-//    (IMU_CHARACTERISTIC_UUID, NIMBLE_PROPERTY::READ) | NIMBLE_PROPERTY::WRITE);
-//    IMUCharacterisitc->setCallbacks(&characteristicCallback);
+    Log.traceln("Service created");
+
+    // Create characteristics
+    IMUCharacteristic = eyeballService->createCharacteristic(IMU_CHARACTERISTIC_UUID,
+                                                             NIMBLE_PROPERTY::READ |
+                                                             NIMBLE_PROPERTY::NOTIFY);
+    IMUCharacteristic->setCallbacks(&characteristicCallback);
+    Log.traceln("IMU Characteristic created");
+
+    // Create other characteristics here
+
+    // Start the service
+    Log.traceln("Starting the eyeball service");
+    eyeballService->start();
+
+    // Set up and start advertising
+    NimBLEAdvertising *advertising = NimBLEDevice::getAdvertising();
+    advertising->addServiceUUID(SERVICE_UUID);
+    advertising->setScanResponse(false);
+    Log.traceln("Starting advertising");
+    advertising->start();
+
+    Log.infoln("BLE Server setup successful");
 }
 
 void setupIMU() {}
@@ -151,7 +222,8 @@ void packageQuaternionData() {
     memcpy(&quaternionData[8], &quaternion.y, sizeof(float));
     memcpy(&quaternionData[12], &quaternion.z, sizeof(float));
 
-    Log.verboseln("\tQuat:\t%")
+    Log.verboseln("\tQuat:\t%d\t%d\t%d\t%d", quaternion.w, quaternion.x, quaternion.y, quaternion
+            .z);
 }
 
 void setup() {
@@ -183,10 +255,17 @@ void setup() {
     }
 }
 
+/**
+ * Main program loop to manage getting quaternion data from the DMP and transmitting it to the
+ * client. If the client is connected, it gets the latest quaternion packet, packages it, and
+ * then notifies the client. It handles reestablishing connections and disconnections
+ */
 void loop() {
+    // Notify the client that the IMU data has changed
     if (connected) {
         if (!DMPInit) {
-            return;
+            Log.errorln("DMP not initialized successfully");
+            restart();
         }
 
         // Get the latest packet and transmit it
@@ -196,5 +275,17 @@ void loop() {
             IMUCharacteristic->notify();
             delay(10); //todo optimize this
         }
+    }
+
+    // For disconnecting
+    if (!connected && prevConnected) {
+        delay(500); // Allow BLE Stack a chance to get things ready
+        server->startAdvertising();
+        prevConnected = connected;
+    }
+
+    // For connecting
+    if (connected && !prevConnected) {
+        prevConnected = connected;
     }
 }
