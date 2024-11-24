@@ -24,7 +24,7 @@ public:
     ~EncoderHandler() noexcept;
 
     /**
-     * Initialize the Encoder Handler by creating the singleton instance
+     * Initialize the Encoder Handler by setting the encoder pins
      *
      * @param pins - An array that holds all of the pins for the encoders
      *               {Channel A pin, Channel B pin}
