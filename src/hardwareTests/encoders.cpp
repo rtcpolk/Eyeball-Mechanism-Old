@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/19/2024
+// Last Modified: 11/24/2024
 
 #include <Arduino.h>
 #include <array>
@@ -12,13 +12,13 @@ std::array<ESP32Encoder, 3> encoders;
 std::array<int64_t, 3> curCounts;
 std::array<int64_t, 3> prevCounts;
 
-// Pin variables
-constexpr uint8_t FIRST_ENCODER_PIN_A = 15;
-constexpr uint8_t FIRST_ENCODER_PIN_B = 16;
-constexpr uint8_t SECOND_ENCODER_PIN_A = 17;
-constexpr uint8_t SECOND_ENCODER_PIN_B = 18;
-constexpr uint8_t THIRD_ENCODER_PIN_A = 19;
-constexpr uint8_t THIRD_ENCODER_PIN_B = 20;
+// Pin variables - set these to match the hardware setup
+constexpr uint8_t FIRST_ENCODER_PIN_A = 16;
+constexpr uint8_t FIRST_ENCODER_PIN_B = 17;
+constexpr uint8_t SECOND_ENCODER_PIN_A = 0;
+constexpr uint8_t SECOND_ENCODER_PIN_B = 0;
+constexpr uint8_t THIRD_ENCODER_PIN_A = 0;
+constexpr uint8_t THIRD_ENCODER_PIN_B = 0;
 constexpr std::array<std::array<uint8_t, 2>, 3> pins = {FIRST_ENCODER_PIN_A,
                                                                FIRST_ENCODER_PIN_B,
                                                                SECOND_ENCODER_PIN_A,
@@ -45,6 +45,7 @@ void setup() {
 
 void loop() {
     for (size_t i(0); i < encoders.size(); ++i) {
+        prevCounts[i] = curCounts[i];
         curCounts[i] = encoders[i].getCount();
     }
 
