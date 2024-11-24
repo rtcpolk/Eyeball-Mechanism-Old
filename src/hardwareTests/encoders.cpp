@@ -6,25 +6,25 @@
 #include <array>
 #include "ESP32Encoder.h"
 
-// Program variables
-constexpr uint32_t BAUD_RATE = 115200;
-std::array<ESP32Encoder, 3> encoders;
-std::array<int64_t, 3> curCounts;
-std::array<int64_t, 3> prevCounts;
-
-// Pin variables - set these to match the hardware setup
+// Configuration variables - set these to match the hardware setup
 constexpr uint8_t FIRST_ENCODER_PIN_A = 16;
 constexpr uint8_t FIRST_ENCODER_PIN_B = 17;
 constexpr uint8_t SECOND_ENCODER_PIN_A = 0;
 constexpr uint8_t SECOND_ENCODER_PIN_B = 0;
 constexpr uint8_t THIRD_ENCODER_PIN_A = 0;
 constexpr uint8_t THIRD_ENCODER_PIN_B = 0;
+constexpr uint32_t BAUD_RATE = 115200;
+
+// Program variables
 constexpr std::array<std::array<uint8_t, 2>, 3> pins = {FIRST_ENCODER_PIN_A,
-                                                               FIRST_ENCODER_PIN_B,
-                                                               SECOND_ENCODER_PIN_A,
-                                                               SECOND_ENCODER_PIN_B,
-                                                               THIRD_ENCODER_PIN_A,
-                                                               THIRD_ENCODER_PIN_B};
+                                                        FIRST_ENCODER_PIN_B,
+                                                        SECOND_ENCODER_PIN_A,
+                                                        SECOND_ENCODER_PIN_B,
+                                                        THIRD_ENCODER_PIN_A,
+                                                        THIRD_ENCODER_PIN_B};
+std::array<ESP32Encoder, 3> encoders;
+std::array<int64_t, 3> curCounts;
+std::array<int64_t, 3> prevCounts;
 
 void setup() {
     Serial.begin(BAUD_RATE);
