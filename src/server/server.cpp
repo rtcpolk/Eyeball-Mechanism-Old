@@ -67,7 +67,7 @@ const std::string SERVICE_UUID =
                                                 // connect to
 const std::string IMU_CHARACTERISTIC_UUID =
         "72b9a4be-85fe-4cd5-ae42-f32414542c5a"; // The UUID for the IMU characteristic
-const std::string DEVICE_NAME = "Eyeball";      // The name of the device that the client is on
+const std::string DEVICE_NAME = "Eyeball";      // The name of the device that the server is on
 
 // Program Variables
 NimBLEServer *server = nullptr; // Ptr to the server
@@ -85,7 +85,7 @@ bool prevConnected = false; // Previous state of connected
 
 // Configuration Variables
 const uint8_t INTERRUPT_PIN = 18;   // GPIO pin connected to the INT pin on the IMU
-uint32_t CLOCK = 400000;            // Clock for the I2C bus (400kHz as of now)
+uint32_t CLOCK = 400000;            // Clock for the I2C bus in Hz
 int16_t X_ACCEL_OFFSET = -5537;     // Offset values
 int16_t Y_ACCEL_OFFSET = 917;
 int16_t Z_ACCEL_OFFSET = 595;
@@ -184,11 +184,11 @@ struct CharacteristicCallbacks final : public NimBLECharacteristicCallbacks {
     }
 };
 
-//================================================================================================//
-
 // Callback instances
 static ServerCallbacks serverCallback;
 static CharacteristicCallbacks characteristicCallback;
+
+//================================================================================================//
 
 /**
  * Restart the ESP32
