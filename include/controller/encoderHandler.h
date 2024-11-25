@@ -33,12 +33,14 @@ public:
 
     /**
      * Get the singleton EncoderHandler instance
+     *
      * @return The instance ptr
      */
     static EncoderHandler *instance();
 
     /**
     * Get the encoder counts
+     *
     * @return A reference to the array containing the encoder counts
     */
     const std::array<int64_t, 3> &getCounts() const noexcept;
