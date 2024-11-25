@@ -112,7 +112,7 @@ uint8_t quaternionData[16]; // Buffer to hold the 4 quaternion floats [wxyz]
  */
 struct ServerCallbacks final : public NimBLEServerCallbacks {
     /**
-     * Called for connection events. Provides logging messages, and sets connected to true
+     * Called for connection events. Sets connected to true
      *
      * @param connectedServer - The server that had the connection event
      * @param connInfo - The connection info
