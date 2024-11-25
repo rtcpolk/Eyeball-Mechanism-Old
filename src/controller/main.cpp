@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/19/24
+// Last Modified: 11/25/24
 
 //================================================================================================//
 
@@ -41,8 +41,9 @@
  *      4 - LOG_LEVEL_NOTICE     errors, warnings and notices
  *      5 - LOG_LEVEL_TRACE      errors, warnings, notices & traces
  *      6 - LOG_LEVEL_VERBOSE    all
- * Uncomment one of the lines below to select the desired logging level. To completely remove
- * logging, go into the ArduinoLog.h file and uncomment line 38 to define DISABLE_LOGGING.
+ * Uncomment one of the lines below to select the desired logging level. To remove logging for
+ * certain files go into their .h files and uncomment '#define DISABLE_LOGGING'. To completely
+ * remove logging, go into the ArduinoLog.h file and uncomment line 38 to define DISABLE_LOGGING.
  *
  * Set the baud rate for serial communication. This should match the value in the platformio.ini
  * file.

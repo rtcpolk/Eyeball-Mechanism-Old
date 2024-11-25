@@ -5,6 +5,8 @@
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
 
+//#define DISABLE_LOGGING
+
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <NimBLEDevice.h>
