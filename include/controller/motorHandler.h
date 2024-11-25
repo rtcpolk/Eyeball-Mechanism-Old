@@ -24,6 +24,8 @@ public:
     // Destructor
     ~MotorHandler() noexcept;
 
+    static MotorHandler *instance();
+
     /**
      * Initialize the Motor Handler by setting the motor driver pins
      * @param motorPins - An array that holds all of the pins for the motor drivers
@@ -34,7 +36,7 @@ public:
     void initialize(const std::array<std::array<uint8_t, 2>, 3> &motorPins, const uint32_t
     &PWM_FREQUENCY, const uint8_t &PWM_RESOLUTION);
 
-    static MotorHandler *instance();
+    void setMotorSpeeds(const std::array<int16_t, 3> &speeds);
 
 private:
     // Primary constructor
@@ -44,6 +46,7 @@ private:
     static MotorHandler *inst;  // Ptr to the singleton inst
     static bool initialized;    // Initialization flag
     std::array<MotorDriver, 3> drivers; // Array to hold the motor drivers
+    uint8_t resolution; // The resolution of the PWM duty cycle
 };
 
 #endif // MOTORHANDLER_H

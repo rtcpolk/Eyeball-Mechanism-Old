@@ -9,6 +9,14 @@ MotorHandler *MotorHandler::inst = nullptr;
 
 MotorHandler::~MotorHandler() noexcept { inst = nullptr; }
 
+MotorHandler *MotorHandler::instance() {
+    if (inst == nullptr) {
+        inst = new MotorHandler();
+    }
+
+    return inst;
+}
+
 void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motorPins, const uint32_t &PWM_FREQUENCY, const uint8_t &PWM_RESOLUTION) {
     Log.traceln("MotorHandler::initialize - Begin");
 
@@ -33,6 +41,7 @@ void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motor
     if (PWM_RESOLUTION < 1 || PWM_RESOLUTION > 16) {
         throw std::logic_error("MotorHandler::initialize - Invalid PWM_RESOLUTION");
     }
+    resolution = PWM_RESOLUTION;
 
     for (size_t i(0); i < drivers.size(); ++i) {
         // Set direction pin values
@@ -52,10 +61,16 @@ void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motor
     Log.traceln("MotorHandler::initialize - End");
 }
 
-MotorHandler *MotorHandler::instance() {
-    if (inst == nullptr) {
-        inst = new MotorHandler();
-    }
+void MotorHandler::setMotorSpeeds(const std::array<int16_t, 3> &speeds) {
+    uint16_t maxDutyCycle = (1 << resolution) - 1;
 
-    return inst;
+    for (size_t i(0); i < speeds.size(); ++i) {
+        // Determine dutyCycle and direction
+        uint16_t dutyCycle = abs(constrain(speeds[i], -maxDutyCycle, maxDutyCycle));
+        uint8_t direction = speeds[i] >= 0 ? LOW : HIGH;
+
+        // Set the pins
+        digitalWrite(drivers[i].directionPin, direction);
+        ledcWrite(i, dutyCycle);
+    }
 }
