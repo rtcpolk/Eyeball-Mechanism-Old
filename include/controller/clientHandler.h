@@ -125,7 +125,7 @@ private:
     static ClientCallbacks clientCallback; // Client callback instance
     static ScanCallbacks scanCallback; // Scan callback instance
     static bool initialized;    // Initialization flag
-    std::string IMUCharacteristicUUID;  // The IMU Characteristic UUID
+    static std::string IMUCharacteristicUUID;  // The IMU Characteristic UUID
 };
 
 #endif // CLIENTHANDLER_H

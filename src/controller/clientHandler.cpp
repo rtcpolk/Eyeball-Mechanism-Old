@@ -1,30 +1,25 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/24/2024
+// Last Modified: 11/25/2024
 
 #include "controller/clientHandler.h"
 
 void ClientCallbacks::onConnect(NimBLEClient *connectedClient) {
     Log.infoln("Connected to the server");
-    /** After connection we should change the parameters if we don't need fast response times.
-        *  These settings are 150ms interval, 0 latency, 450ms timout.
-        *  Timeout should be a multiple of the interval, minimum is 100ms.
-        *  I find a multiple of 3-5 * the interval works best for quick response/reconnect.
-        *  Min interval: 120 * 1.25ms = 150, Max interval: 120 * 1.25ms = 150, 0 latency, 60 * 10ms = 600ms timeout
-        */
     connectedClient->updateConnParams(120, 120, 0, 60); //todo figure this out
 }
 
 void ClientCallbacks::onDisconnect(NimBLEClient *disconnectedClient, int reason) {
     Log.warningln("Disconnected from the server (code %d). Starting scan", reason);
-    NimBLEDevice::getScan()->start(ClientHandler::SCAN_TIME);
+    NimBLEDevice::getScan()->start(ClientHandler::scanTime);
 }
 
 void ScanCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice) {
     Log.trace("Advertised Device found: ");
     Log.traceln(advertisedDevice->toString().c_str());
 
-    if (advertisedDevice->isAdvertisingService(NimBLEUUID(ClientHandler::SERVICE_UUID))) {
+    // Check if the device has the correct service UUID
+    if (advertisedDevice->isAdvertisingService(NimBLEUUID(ClientHandler::serviceUUID))) {
         Log.traceln("Found a server with the correct service");
         NimBLEDevice::getScan()->stop();
         ClientHandler::advDevice = advertisedDevice;
@@ -38,34 +33,29 @@ void ScanCallbacks::onScanEnd(NimBLEScanResults results) {
     Log.traceln("ScanCallbacks::onScanEnd - Scan ended");
 }
 
-void
-notifyCallback(NimBLERemoteCharacteristic *pRemoteCharacteristic, uint8_t *pData, size_t length,
-               bool isNotify) {
-    Log.infoln("Notify");
-}
-
 // Set static variables
 NimBLEAdvertisedDevice *ClientHandler::advDevice = nullptr;
-std::string ClientHandler::SERVICE_UUID = "";
-uint8_t ClientHandler::SCAN_TIME = 0;
+std::string ClientHandler::serviceUUID = "";
+uint32_t ClientHandler::scanTime = 5 * 1000;
 bool ClientHandler::doConnect = false;
 ClientHandler *ClientHandler::inst = nullptr;
 ClientCallbacks ClientHandler::clientCallback;
 ScanCallbacks ClientHandler::scanCallback;
 bool ClientHandler::initialized = false;
+std::string ClientHandler::IMUCharacteristicUUID = "";
 
 ClientHandler::~ClientHandler() { inst = nullptr; }
 
-void ClientHandler::initialize(const std::string &SERVICE_UUID_TO_SET, const std::string
-&IMU_CHARACTERISTIC_UUID_TO_SET, const std::string &DEVICE_NAME, const uint8_t &SCAN_TIME_TO_SET,
+void ClientHandler::initialize(const std::string &SERVICE_UUID, const std::string
+&IMU_CHARACTERISTIC_UUID, const std::string &DEVICE_NAME, const uint8_t &SCAN_TIME,
                                const uint32_t &SCAN_WINDOW, const uint32_t &SCAN_INTERVAL) {
     Log.traceln("ClientHandler::initialize - Begin");
 
     // Set UUIDs
-    SERVICE_UUID = SERVICE_UUID_TO_SET;
-    IMU_CHARACTERISTIC_UUID = IMU_CHARACTERISTIC_UUID_TO_SET;
+    serviceUUID = SERVICE_UUID;
+    IMUCharacteristicUUID = IMU_CHARACTERISTIC_UUID;
     // Check and set scan time
-    SCAN_TIME = SCAN_TIME_TO_SET * 1000; // In ms
+    scanTime = SCAN_TIME;
 
     // Initialize the BLE Device
     NimBLEDevice::init(DEVICE_NAME);
@@ -77,7 +67,7 @@ void ClientHandler::initialize(const std::string &SERVICE_UUID_TO_SET, const std
     scanner->setWindow(SCAN_WINDOW);
     scanner->setActiveScan(true);
     scanner->start(SCAN_TIME);
-    Log.traceln("ClientHandler::initialize - Begin");
+    Log.traceln("ClientHandler::initialize - End");
 }
 
 ClientHandler *ClientHandler::instance() {
@@ -88,21 +78,48 @@ ClientHandler *ClientHandler::instance() {
     return inst;
 }
 
+void
+ClientHandler::notifyCallback(NimBLERemoteCharacteristic *remoteCharacteristic, uint8_t *pData,
+                              size_t length,
+                              bool isNotify) {
+    //todo add a buffer?
+    if (remoteCharacteristic->getUUID() == BLEUUID(IMUCharacteristicUUID) && isNotify) {
+        if (length == 16) {
+            float qw, qx, qy, qz;
+            memcpy(&qw, &pData[0], sizeof(float));
+            memcpy(&qx, &pData[4], sizeof(float));
+            memcpy(&qy, &pData[8], sizeof(float));
+            memcpy(&qz, &pData[12], sizeof(float));
+
+            Log.verboseln("\tQuat:\t%D\t%D\t%D\t%D", qw, qx, qy, qz);
+
+        } else {
+            Log.warningln("ClientHandler::notifyCallback - Unexpected data length received");
+        }
+    } else {
+        Log.warningln("ClientHandler::notifyCallback - Unexpected characteristic or trigger");
+    }
+}
+
 void ClientHandler::loop() {
     while (true) {
+        try {
 
-        if (doConnect) {
-            Log.traceln("doconnect true");
-            if (connectToServer()) {
-                Log.infoln("Successfully connected to the server");
-                doConnect = false;
-            } else {
-                Log.traceln("Failed to connect to the server");
+            if (doConnect) {
+                if (connectToServer()) {
+                    Log.traceln("Successfully connected to the server");
+                    doConnect = false;
+                } else {
+                    Log.traceln("Failed to connect to the server");
+                }
             }
+            delay(10);
+        } catch (const std::exception &ex) {
+            Log.errorln("ClientHandler::Loop execution failed - %s", ex.what());
+        } catch (...) {
+            Log.errorln("ClientHandler::Loop execution failed - Unknown Error");
         }
-        delay(10);
     }
-
 }
 
 bool ClientHandler::connectToServer() {
@@ -165,14 +182,14 @@ bool ClientHandler::connectToServer() {
     }
     Log.info("Connected to: ");
     Log.infoln(client->getPeerAddress().toString().c_str());
-    Log.info("RSSI: ");
-    Log.infoln("%d", client->getRssi());
+    Log.trace("RSSI: ");
+    Log.traceln("%d", client->getRssi());
 
     // Check the characteristics for the correct properties
     Log.traceln("ClientHandler::connectToServer - Checking the characteristics");
-    remoteService = client->getService(SERVICE_UUID);
+    remoteService = client->getService(serviceUUID);
     if (remoteService) {
-        remoteIMUCharacteristic = remoteService->getCharacteristic(IMU_CHARACTERISTIC_UUID);
+        remoteIMUCharacteristic = remoteService->getCharacteristic(IMUCharacteristicUUID);
 
         if (remoteIMUCharacteristic) {
             // Make sure read is supported
