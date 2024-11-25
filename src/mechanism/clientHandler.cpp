@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/25/2024
 
-#include "controller/clientHandler.h"
+#include "mechanism/clientHandler.h"
 
 void ClientCallbacks::onConnect(NimBLEClient *connectedClient) {
     Log.infoln("Connected to the server");

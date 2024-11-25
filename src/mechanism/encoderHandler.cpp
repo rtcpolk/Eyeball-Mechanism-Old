@@ -2,7 +2,7 @@
 // Copyright (c) 2024 BLINK. All rights reserved.
 // Last Modified: 11/19/2024
 
-#include "controller/encoderHandler.h"
+#include "mechanism/encoderHandler.h"
 
 // Set static inst to null and initialized to false
 EncoderHandler *EncoderHandler::inst = nullptr;

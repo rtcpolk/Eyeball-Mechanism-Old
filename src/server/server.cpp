@@ -6,7 +6,7 @@
 
 /*
  * This program creates a BLE server to transmit data from the IMU to the BLE client on the
- * mechanism's main controller. To configure this program to interface with the internal eyeball
+ * mechanism's main mechanism. To configure this program to interface with the internal eyeball
  * hardware, read through the following sections and set the variables accordingly. Each section
  * configures a different component of the program and outlines configuration variables and program
  * variables. Only edit the configuration variables. The sections are in the following order:
@@ -21,8 +21,8 @@
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <NimBLEDevice.h>
-#include "C:\Users\rober\blink\lib\I2Cdev\I2Cdev.h"
-#include "C:\Users\rober\blink\lib\MPU6050\MPU6050_6Axis_MotionApps20.h"
+#include "..\lib\I2Cdev\I2Cdev.h"
+#include "..\lib\MPU6050\MPU6050_6Axis_MotionApps20.h"
 
 /*
  * Logging
@@ -57,7 +57,7 @@ constexpr uint32_t BAUD_RATE = 115200;  // The baud rate for serial communicatio
  * BLE Server
  *
  * This section configures the BLE Server by setting the UUIDs and device name. The UUIDs need to
- * match those set in controller/main.cpp in order for the server to connect properly. New
+ * match those set in mechanism/main.cpp in order for the server to connect properly. New
  * UUIDs can be generated at https://www.uuidgenerator.net/.
  */
 

@@ -26,8 +26,8 @@
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <array>
-#include "controller/clientHandler.h"
-#include "controller/encoderHandler.h"
+#include "mechanism/clientHandler.h"
+#include "mechanism/encoderHandler.h"
 
 /*
  * Logging
