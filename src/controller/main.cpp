@@ -26,7 +26,7 @@
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <array>
-#include "controller/clientHandlerold.h"
+#include "controller/clientHandler.h"
 #include "controller/encoderHandler.h"
 
 /*
@@ -73,6 +73,9 @@ const std::string SERVICE_UUID =
 const std::string IMU_CHARACTERISTIC_UUID =
         "72b9a4be-85fe-4cd5-ae42-f32414542c5a"; // The UUID for the IMU characteristic
 const std::string DEVICE_NAME = "Controller";   // The name of the device that the client is on
+constexpr uint8_t SCAN_TIME = 0;        // The duration of a scan in ms (0 is indefinite)
+constexpr uint32_t SCAN_WINDOW = 15;    // The scan window in ms
+constexpr uint32_t SCAN_INTERVAL = 45;  // The scan interval in ms
 
 // Program Variables
 TaskHandle_t clientLoopHandle = nullptr;    // Ptr to the client's FreeRTOS task
@@ -183,25 +186,26 @@ void setup() {
         restart();
     }
 
-//    // Initialize the BLE Client
-//    try {
-//        count = 0; //todo update this with client when ready
-//    } catch (const std::exception &ex) {
-//        Log.errorln("Failed to initialize ClientHandler - %s", ex.what());
-//        restart();
-//    } catch (...) {
-//        Log.errorln("Failed to initialize ClientHandler - Unknown Error");
-//        restart();
-//    }
-//
-//    // Create background task for the client
-//    BaseType_t clientResult = xTaskCreate(clientLoopTask, "EncoderHandler::Loop",
-//                                    2048, nullptr, 2, &encoderLoopHandle);
-//
-//    if (clientResult != pdPASS) {
-//        Log.errorln("Failed to create clientLoopTask");
-//        restart();
-//    }
+    // Initialize the BLE Client
+    try {
+        ClientHandler::instance()->initialize(SERVICE_UUID, IMU_CHARACTERISTIC_UUID, DEVICE_NAME,
+                                              SCAN_TIME, SCAN_WINDOW, SCAN_INTERVAL);
+    } catch (const std::exception &ex) {
+        Log.errorln("Failed to initialize ClientHandler - %s", ex.what());
+        restart();
+    } catch (...) {
+        Log.errorln("Failed to initialize ClientHandler - Unknown Error");
+        restart();
+    }
+
+    // Create background task for the client
+    BaseType_t clientResult = xTaskCreate(clientLoopTask, "EncoderHandler::Loop",
+                                    2048, nullptr, 2, &encoderLoopHandle);
+
+    if (clientResult != pdPASS) {
+        Log.errorln("Failed to create clientLoopTask");
+        restart();
+    }
 }
 
 void loop() {}
