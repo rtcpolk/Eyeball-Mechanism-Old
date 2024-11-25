@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/19/2024
+// Last Modified: 11/25/2024
 
 #ifndef ENCODERHANDLER_H
 #define ENCODERHANDLER_H

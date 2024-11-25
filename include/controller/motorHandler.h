@@ -36,6 +36,11 @@ public:
     void initialize(const std::array<std::array<uint8_t, 2>, 3> &motorPins, const uint32_t
     &PWM_FREQUENCY, const uint8_t &PWM_RESOLUTION);
 
+    /**
+     * Set the speeds of the 3 motors
+     *
+     * @param speeds - An array holding the pwm values
+     */
     void setMotorSpeeds(const std::array<int16_t, 3> &speeds);
 
 private:

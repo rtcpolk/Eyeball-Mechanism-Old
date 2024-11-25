@@ -209,3 +209,5 @@ void setup() {
 }
 
 void loop() {}
+
+//todo parameter checks in encoder and client
