@@ -18,6 +18,15 @@ void EncoderHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &pin
         throw std::runtime_error("EncoderHandler::initialize can only be called once");
     }
 
+    // Ensure params are valid
+    for (size_t i(0); i < pins.size(); ++i) {
+        for (size_t j(0); j < pins[i].size(); ++j) {
+            if (pins[i][j] > 39) {
+                throw std::logic_error("MotorHandler::initialize - Invalid pin");
+            }
+        }
+    }
+
     // Attach and make sure its successful
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
     try {
