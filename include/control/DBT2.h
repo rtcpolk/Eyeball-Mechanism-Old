@@ -11,16 +11,34 @@
 class DBT2 final : public ControlAlgoImpl {
 public:
     // Default copy-constructor, assignment-op, and destructor
-    DBT2(const DBT2&) = default;
-    DBT2 &operator=(const DBT2&) = default;
-    ~DBT2() = default;
+    DBT2(const DBT2 &) = default;
+    DBT2&operator=(const DBT2&) = default;
+    ~DBT2() override = default;
 
-    friend class Factory;
+    friend class Factory;   // For construction
 private:
-    // Only allow factory to create
-    DBT2() = default;
+    DBT2();
 
-    Quaternion getTarget();
+    Quaternion getTarget() override;
 };
 
 #endif // DBT2_H
+
+
+
+
+//class DBT2 final : public ControlAlgoImpl {
+//public:
+//    // Default copy-constructor, assignment-op, and destructor
+//    // Only allow factory to create
+//    DBT2() = default;
+//    DBT2(const DBT2&) = default;
+//    DBT2 &operator=(const DBT2&) = default;
+//    ~DBT2() = default;
+//
+//    friend class Factory;
+//private:
+//    Quaternion getTarget() override;
+//};
+//
+//#endif // DBT2_H

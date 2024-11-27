@@ -4,4 +4,12 @@
 
 #include "control/DBT2.h"
 
-Quaternion DBT2::getTarget() {}
+DBT2::DBT2() : ControlAlgoImpl() {
+    Log.traceln("dbt2 Created");
+}
+
+Quaternion DBT2::getTarget() {
+    //todo update
+    Log.traceln("dbt2 executed");
+    return Quaternion();
+}

@@ -4,3 +4,7 @@
 
 #include "control/controlAlgoImpl.h"
 
+bool ControlAlgoImpl::execute() {
+    getTarget();
+    return true;
+}
