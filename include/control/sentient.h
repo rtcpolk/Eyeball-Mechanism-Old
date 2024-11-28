@@ -28,7 +28,7 @@ private:
      */
     Sentient();
 
-    Quaternion setTargetQuaternion() override;
+    ExtendedQuaternion setTargetQuaternion() override;
 };
 
 #endif // SENTIENT_H

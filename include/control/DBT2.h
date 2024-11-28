@@ -29,7 +29,7 @@ private:
      * Set the target quaternion - does nothing for dbt2
      * @return target quaternion
      */
-    Quaternion setTargetQuaternion() override;
+    ExtendedQuaternion setTargetQuaternion() override;
 
     /**
      * Arbitrarily control the motors to demonstrate movement capabilities. DBT2 does not

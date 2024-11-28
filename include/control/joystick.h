@@ -29,7 +29,7 @@ private:
      */
     Joystick();
 
-    Quaternion setTargetQuaternion() override;
+    ExtendedQuaternion setTargetQuaternion() override;
 };
 
 #endif // JOYSTICK_H

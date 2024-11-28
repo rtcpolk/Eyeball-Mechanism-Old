@@ -18,48 +18,50 @@
 /**
  * Factory for choosing controlAlgos from switch input
  */
- class Factory {
- public:
-     // Default constructor and destructor
-     Factory() = default;
-     ~Factory() = default;
+class Factory {
+public:
+    // Default constructor and destructor
+    Factory() = default;
 
-     // Delete copy-constructor and assignment-op
-     Factory(const Factory&) = delete;
-     Factory &operator=(const Factory&) = delete;
+    ~Factory() = default;
 
-     /**
-      * Main factory method that parses switch inputs to create control algos
-      *
-      * @param switchInput - The switch inputs
-      * @return The control algo
-      */
-     ControlAlgo makeControlAlgo(const std::array<uint8_t, 3> &switchInput);
+    // Delete copy-constructor and assignment-op
+    Factory(const Factory &) = delete;
 
- private:
-     /**
-      * Make a DBT2 control algo
-      * @return - The control algo
-      */
-     ControlAlgo makeDBT2();
+    Factory &operator=(const Factory &) = delete;
 
-     /**
-      * Make a pathFollowing control algo
-      * @return - The control algo
-      */
-     ControlAlgo makePathFollowing();
+    /**
+     * Main factory method that parses switch inputs to create control algos
+     *
+     * @param switchInput - The switch inputs
+     * @return The control algo
+     */
+    ControlAlgo makeControlAlgo(const std::array<uint8_t, 3> &switchInput);
 
-     /**
-      * Make a joystick control algo
-      * @return - The control algo
-      */
-     ControlAlgo makeJoystick();
+private:
+    /**
+     * Make a DBT2 control algo
+     * @return - The control algo
+     */
+    static ControlAlgo makeDBT2();
 
-     /**
-      * Make a sentient control algo
-      * @return - The control algo
-      */
-     ControlAlgo makeSentient();
- };
+    /**
+     * Make a pathFollowing control algo
+     * @return - The control algo
+     */
+    static ControlAlgo makePathFollowing();
+
+    /**
+     * Make a joystick control algo
+     * @return - The control algo
+     */
+    static ControlAlgo makeJoystick();
+
+    /**
+     * Make a sentient control algo
+     * @return - The control algstatic o
+     static */
+    static ControlAlgo makeSentient();
+};
 
 #endif // FACTORY_H

@@ -8,7 +8,7 @@ Sentient::Sentient() : ControlAlgoImpl() {
     Log.traceln("Sentient Created");
 }
 
-Quaternion Sentient::setTargetQuaternion() {
+ExtendedQuaternion Sentient::setTargetQuaternion() {
     //todo update
     Log.traceln("Sentient executed");
     return {};

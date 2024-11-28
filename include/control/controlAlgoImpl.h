@@ -7,10 +7,9 @@
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
-//#include "control/quaternion.h"
+#include "control/extendedQuaternion.h"
 #include "mechanism/clientHandler.h"
 #include "mechanism/motorHandler.h"
-#include "../lib/MPU6050/helper_3dmath.h"
 
 /**
  * Abstract base class for rhs of ControlAlgo bridge
@@ -31,22 +30,20 @@ public:
     void execute();
 
 private:
-    virtual Quaternion setTargetQuaternion() = 0;
-    Quaternion setCurrentQuaternion();
+    virtual ExtendedQuaternion setTargetQuaternion() = 0;
+    ExtendedQuaternion setCurrentQuaternion();
 
     /**
      * https://en.wikipedia.org/wiki/Slerp
      * @return
      */
-    Quaternion slerp();
+    ExtendedQuaternion slerp();
     void calculateAngularVelocity();
     void applyInverseKinematics();
     virtual void PID();
 
     // Member variables
-    Quaternion targetQuat;  // The desired quaternion orientation
-    Quaternion currentQuat; // Current quaternion orientation
-    static float initialDistance;
+
 };
 
 #endif // CONTROLALGOIMPL_H

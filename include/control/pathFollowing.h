@@ -28,7 +28,7 @@ private:
      */
     PathFollowing();
 
-    Quaternion setTargetQuaternion() override;
+    ExtendedQuaternion setTargetQuaternion() override;
 };
 
 #endif // PATHFOLLOWING_H
