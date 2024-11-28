@@ -5,7 +5,10 @@
 #ifndef FACTORY_H
 #define FACTORY_H
 
+//#define DISABLE_LOGGING
+
 #include <Arduino.h>
+#include <ArduinoLog.h>
 #include "controlAlgo.h"
 #include "control/DBT2.h"
 #include "control/pathFollowing.h"
@@ -25,43 +28,38 @@
      Factory(const Factory&) = delete;
      Factory &operator=(const Factory&) = delete;
 
+     /**
+      * Main factory method that parses switch inputs to create control algos
+      *
+      * @param switchInput - The switch inputs
+      * @return The control algo
+      */
      ControlAlgo makeControlAlgo(const std::array<uint8_t, 3> &switchInput);
 
  private:
+     /**
+      * Make a DBT2 control algo
+      * @return - The control algo
+      */
      ControlAlgo makeDBT2();
 
+     /**
+      * Make a pathFollowing control algo
+      * @return - The control algo
+      */
      ControlAlgo makePathFollowing();
 
+     /**
+      * Make a joystick control algo
+      * @return - The control algo
+      */
      ControlAlgo makeJoystick();
 
+     /**
+      * Make a sentient control algo
+      * @return - The control algo
+      */
      ControlAlgo makeSentient();
  };
 
 #endif // FACTORY_H
-
-
-
-
-
-//class Factory {
-//public:
-//    // Default constructor and destructor
-//    Factory() = default;
-//    ~Factory() = default;
-//
-//    // Delete copy-constructor and assignment-op
-//    Factory(const Factory&) = delete;
-//    Factory &operator=(const Factory&) = delete;
-//
-//    /**
-//     * Primary factory method
-//     * @return
-//     */
-//    ControlAlgo makeControlAlgo();
-//
-//private:
-//    // Make different types of control algos here
-//    ControlAlgo makeDBT2();
-//};
-//
-//#endif // FACTORY_H

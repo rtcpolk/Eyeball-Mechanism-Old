@@ -7,7 +7,10 @@
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
-#include <../lib/MPU6050/helper_3dmath.h>
+//#include "control/quaternion.h"
+#include "mechanism/clientHandler.h"
+#include "mechanism/motorHandler.h"
+#include "../lib/MPU6050/helper_3dmath.h"
 
 /**
  * Abstract base class for rhs of ControlAlgo bridge
@@ -18,90 +21,32 @@ public:
     ControlAlgoImpl() = default;
     virtual ~ControlAlgoImpl() = default;
 
-    bool execute();
+    // Delete copy-constructor and assignment-op
+    ControlAlgoImpl(const ControlAlgoImpl&) = delete;
+    ControlAlgoImpl &operator=(const ControlAlgoImpl&) = delete;
+
+    /**
+     * Execute the control algo. Provides the common execution interface for derived algos
+     */
+    void execute();
 
 private:
-    virtual Quaternion getTarget() = 0;
+    virtual Quaternion setTargetQuaternion() = 0;
+    Quaternion setCurrentQuaternion();
+
+    /**
+     * https://en.wikipedia.org/wiki/Slerp
+     * @return
+     */
+    Quaternion slerp();
+    void calculateAngularVelocity();
+    void applyInverseKinematics();
+    virtual void PID();
+
+    // Member variables
+    Quaternion targetQuat;  // The desired quaternion orientation
+    Quaternion currentQuat; // Current quaternion orientation
+    static float initialDistance;
 };
 
 #endif // CONTROLALGOIMPL_H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///**
-// * Abstract base class for rhs of ControlAlgo bridge
-// */
-//class ControlAlgoImpl {
-//public:
-//    // Default constructor, copy-constructor, assignment-op, and destructor
-//    ControlAlgoImpl() = default;
-//
-//    ControlAlgoImpl(const ControlAlgoImpl&) = default;
-//
-//    ControlAlgoImpl &operator=(const ControlAlgoImpl &) = default;
-//
-//    virtual ~ControlAlgoImpl() = default;
-//
-//    /**
-//     * Execution interface for derived control algos
-//     *
-//     * @return True if successful
-//     */
-//    bool execute();
-//
-//private:
-//    // Private methods that define the control algo...which need to be overriden?
-//    virtual Quaternion getTarget() = 0;
-//
-//};
-//
-//#endif // CONTROLALGOIMPL_H

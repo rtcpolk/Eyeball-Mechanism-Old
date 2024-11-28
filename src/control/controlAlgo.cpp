@@ -6,11 +6,6 @@
 
 ControlAlgo::~ControlAlgo() { delete bridge; }
 
-bool ControlAlgo::execute() const { return bridge->execute(); }
+void ControlAlgo::execute() const { bridge->execute(); }
 
 ControlAlgo::ControlAlgo(ControlAlgoImpl *impl) : bridge(impl) {}
-
-
-//bool ControlAlgo::execute() const { return bridge->execute(); }
-//
-//ControlAlgo::ControlAlgo(std::shared_ptr<ControlAlgoImpl> impl) : bridge(std::move(impl)) {}

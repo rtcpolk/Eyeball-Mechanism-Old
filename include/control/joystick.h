@@ -13,19 +13,23 @@
  */
 class Joystick final : public ControlAlgoImpl {
 public:
-    // Default copy-constructor, assignment-op, and destructor
-    Joystick(const Joystick &) = default;
+    // Delete copy-constructor and assignment-op
+    Joystick(const Joystick &) = delete;
 
-    Joystick &operator=(const Joystick &) = default;
+    Joystick &operator=(const Joystick &) = delete;
 
+    // Default destructor
     ~Joystick() override = default;
 
     friend class Factory;   // For construction
 
 private:
+    /**
+     * Primary constructor - used by factory
+     */
     Joystick();
 
-    Quaternion getTarget() override;
+    Quaternion setTargetQuaternion() override;
 };
 
 #endif // JOYSTICK_H

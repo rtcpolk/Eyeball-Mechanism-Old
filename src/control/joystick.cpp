@@ -8,7 +8,7 @@ Joystick::Joystick() : ControlAlgoImpl() {
     Log.traceln("joystick Created");
 }
 
-Quaternion Joystick::getTarget() {
+Quaternion Joystick::setTargetQuaternion() {
     //todo update
     Log.traceln("joystick executed");
     return Quaternion();

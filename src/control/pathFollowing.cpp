@@ -8,7 +8,7 @@ PathFollowing::PathFollowing() : ControlAlgoImpl() {
     Log.traceln("pathfollowing Created");
 }
 
-Quaternion PathFollowing::getTarget() {
+Quaternion PathFollowing::setTargetQuaternion() {
     //todo
     Log.traceln("pathfollowing executed");
     return Quaternion();

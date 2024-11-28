@@ -5,13 +5,19 @@
 #include "control/factory.h"
 
 ControlAlgo Factory::makeControlAlgo(const std::array<uint8_t, 3> &switchInput) {
+    Log.traceln("Factory::makeControlAlgo - Begin");
+
     if (switchInput[0] == 1) {
+        Log.traceln("Making DBT2");
         return makeDBT2();
     } else if (switchInput[1] == 1) {
+        Log.traceln("Making PathFollowing");
         return makePathFollowing();
     } else if (switchInput[2] == 1) {
+        Log.traceln("Making Joystick");
         return makeJoystick();
     } else {
+        Log.traceln("Making Sentient");
         return makeSentient();
     }
 }

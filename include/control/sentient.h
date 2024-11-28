@@ -13,16 +13,22 @@
  */
 class Sentient final : public ControlAlgoImpl {
 public:
-    // Default copy-constructor, assignment-op, and destructor
-    Sentient(const Sentient &) = default;
-    Sentient&operator=(const Sentient&) = default;
+    // Delete copy-constructor and assignment-op
+    Sentient(const Sentient &) = delete;
+
+    Sentient &operator=(const Sentient &) = delete;
+
+    // Default destructor
     ~Sentient() override = default;
 
     friend class Factory;   // For construction
 private:
+    /**
+     * Primary constructor - used by factory
+     */
     Sentient();
 
-    Quaternion getTarget() override;
+    Quaternion setTargetQuaternion() override;
 };
 
 #endif // SENTIENT_H

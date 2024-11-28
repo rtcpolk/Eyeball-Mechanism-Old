@@ -13,18 +13,22 @@
  */
 class PathFollowing final : public ControlAlgoImpl {
 public:
-    // Default copy-constructor, assignment-op, and destructor
-    PathFollowing(const PathFollowing &) = default;
+    // Delete copy-constructor and assignment-op
+    PathFollowing(const PathFollowing &) = delete;
 
-    PathFollowing &operator=(const PathFollowing &) = default;
+    PathFollowing &operator=(const PathFollowing &) = delete;
 
+    // Default destructor
     ~PathFollowing() override = default;
 
     friend class Factory;   // For construction
 private:
+    /**
+     * Primary constructor - used by factory
+     */
     PathFollowing();
 
-    Quaternion getTarget() override;
+    Quaternion setTargetQuaternion() override;
 };
 
 #endif // PATHFOLLOWING_H

@@ -27,7 +27,7 @@ public:
     // Destructor
     ~ControlAlgo();
 
-    bool execute() const;
+    void execute() const;
 
     friend class Factory;
 
