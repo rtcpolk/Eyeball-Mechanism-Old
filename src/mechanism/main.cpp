@@ -28,6 +28,7 @@
 #include <array>
 #include "mechanism/clientHandler.h"
 #include "mechanism/encoderHandler.h"
+#include "control/factory.h"
 
 /*
  * Logging
@@ -207,8 +208,29 @@ void setup() {
         Log.errorln("Failed to create clientLoopTask");
         restart();
     }
+
+    //todo init motorhand
+   // MotorHandler::instance()->initialize(motorPins, PWM_FREQUENCY, PWM_RESOLUTION);
 }
 
-void loop() {}
+/**
+ * This is the main loop for the program. It checks the control switches and executes the correct
+ * control algorithm
+ */
+Factory factory;   // Factory instance to make control algos
+void loop() {
+    // Check the switches //todo eventually this will be dynamic w debounce (for now just dbt2)
+    std::array<uint8_t, 3> switchInput = {1, 0, 0};
 
-//todo parameter checks in encoder and client
+    try {
+        // Create the correct control algo
+        ControlAlgo controlAlgo = factory.makeControlAlgo(switchInput);
+
+        // Execute the control algo
+        controlAlgo.execute();
+    } catch (const std::exception &ex) {
+        Log.errorln("Failed to create or execute control algorithm - %s", ex.what());
+    } catch (...) {
+        Log.errorln("Failed to create or execute control algorithm - Unknown Error");
+    }
+}
