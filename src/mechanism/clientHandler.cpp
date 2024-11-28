@@ -43,14 +43,23 @@ ClientCallbacks ClientHandler::clientCallback;
 ScanCallbacks ClientHandler::scanCallback;
 bool ClientHandler::initialized = false;
 std::string ClientHandler::IMUCharacteristicUUID = "";
+Quaternion ClientHandler::quaternion;
 
 ClientHandler::~ClientHandler() { inst = nullptr; }
+
+ClientHandler *ClientHandler::instance() {
+    if (inst == nullptr) {
+        inst = new ClientHandler();
+    }
+
+    return inst;
+}
 
 void ClientHandler::initialize(const std::string &SERVICE_UUID, const std::string
 &IMU_CHARACTERISTIC_UUID, const std::string &DEVICE_NAME, const uint8_t &SCAN_TIME,
                                const uint32_t &SCAN_WINDOW, const uint32_t &SCAN_INTERVAL) {
     Log.traceln("ClientHandler::initialize - Begin");
-
+//todo fix static initialize
     // Set UUIDs
     serviceUUID = SERVICE_UUID;
     IMUCharacteristicUUID = IMU_CHARACTERISTIC_UUID;
@@ -70,14 +79,6 @@ void ClientHandler::initialize(const std::string &SERVICE_UUID, const std::strin
     Log.traceln("ClientHandler::initialize - End");
 }
 
-ClientHandler *ClientHandler::instance() {
-    if (inst == nullptr) {
-        inst = new ClientHandler();
-    }
-
-    return inst;
-}
-
 void
 ClientHandler::notifyCallback(NimBLERemoteCharacteristic *remoteCharacteristic, uint8_t *pData,
                               size_t length,
@@ -85,13 +86,13 @@ ClientHandler::notifyCallback(NimBLERemoteCharacteristic *remoteCharacteristic, 
     //todo add a buffer?
     if (remoteCharacteristic->getUUID() == BLEUUID(IMUCharacteristicUUID) && isNotify) {
         if (length == 16) {
-            float qw, qx, qy, qz;
-            memcpy(&qw, &pData[0], sizeof(float));
-            memcpy(&qx, &pData[4], sizeof(float));
-            memcpy(&qy, &pData[8], sizeof(float));
-            memcpy(&qz, &pData[12], sizeof(float));
+            memcpy(&quaternion.w, &pData[0], sizeof(float));
+            memcpy(&quaternion.x, &pData[4], sizeof(float));
+            memcpy(&quaternion.y, &pData[8], sizeof(float));
+            memcpy(&quaternion.z, &pData[12], sizeof(float));
 
-            Log.verboseln("\tQuat:\t%D\t%D\t%D\t%D", qw, qx, qy, qz);
+            Log.verboseln("\tQuat:\t%D\t%D\t%D\t%D", quaternion.w, quaternion.x, quaternion.y,
+                          quaternion.z);
 
         } else {
             Log.warningln("ClientHandler::notifyCallback - Unexpected data length received");
@@ -99,6 +100,10 @@ ClientHandler::notifyCallback(NimBLERemoteCharacteristic *remoteCharacteristic, 
     } else {
         Log.warningln("ClientHandler::notifyCallback - Unexpected characteristic or trigger");
     }
+}
+
+const Quaternion &ClientHandler::getQuaternion() const {
+    return quaternion;
 }
 
 void ClientHandler::loop() {

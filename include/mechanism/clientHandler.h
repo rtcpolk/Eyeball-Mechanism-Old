@@ -5,11 +5,12 @@
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
 
-//#define DISABLE_LOGGING
+#define DISABLE_LOGGING
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <NimBLEDevice.h>
+#include <../lib/MPU6050/helper_3dmath.h>
 
 /**
  * A struct to define what to do for client events
@@ -65,25 +66,25 @@ public:
     ~ClientHandler();
 
     /**
-     * Initialize the Client Handler by creating a BLE Device and starting a scan
-     *
-     * @param SERVICE_UUID - The service UUID to look for
-     * @param IMU_CHARACTERISTIC_UUID - The IMU Characteristic UUID to look for
-     * @param DEVICE_NAME - The name of the client's BLE Device
-     * @param SCAN_TIME - The duration of a scan in ms (0 is indefinite)
-     * @param SCAN_WINDOW - The scan window in ms
-     * @param SCAN_INTERVAL - The scan interval in ms
-     */
-    void initialize(const std::string &SERVICE_UUID, const std::string
-    &IMU_CHARACTERISTIC_UUID, const std::string &DEVICE_NAME, const uint8_t
-                    &SCAN_TIME, const uint32_t &SCAN_WINDOW, const uint32_t &SCAN_INTERVAL);
-
-    /**
      * Get the singleton ClientHandler instance
      *
      * @return The instance ptr
      */
     static ClientHandler *instance();
+
+    /**
+    * Initialize the Client Handler by creating a BLE Device and starting a scan
+    *
+    * @param SERVICE_UUID - The service UUID to look for
+    * @param IMU_CHARACTERISTIC_UUID - The IMU Characteristic UUID to look for
+    * @param DEVICE_NAME - The name of the client's BLE Device
+    * @param SCAN_TIME - The duration of a scan in ms (0 is indefinite)
+    * @param SCAN_WINDOW - The scan window in ms
+    * @param SCAN_INTERVAL - The scan interval in ms
+    */
+    void initialize(const std::string &SERVICE_UUID, const std::string
+    &IMU_CHARACTERISTIC_UUID, const std::string &DEVICE_NAME, const uint8_t
+                    &SCAN_TIME, const uint32_t &SCAN_WINDOW, const uint32_t &SCAN_INTERVAL);
 
     /**
      * Called when a subscribed characteristic notifies the client. It un-packages the IMU's
@@ -101,6 +102,12 @@ public:
      * Continuously manage the client's connection to the server
      */
     [[noreturn]] void loop();
+
+    /**
+     * Get the current quaternion
+     * @return The current quaternion
+     */
+    const Quaternion &getQuaternion() const;
 
     // Public Member variables - used by the callbacks
     static NimBLEAdvertisedDevice *advDevice;   // A ptr to a device with the correct UUID
@@ -128,6 +135,7 @@ private:
     static ScanCallbacks scanCallback; // Scan callback instance
     static bool initialized;    // Initialization flag
     static std::string IMUCharacteristicUUID;  // The IMU Characteristic UUID
+    static Quaternion quaternion;  // To hold the current quaternion value
 };
 
 #endif // CLIENTHANDLER_H
