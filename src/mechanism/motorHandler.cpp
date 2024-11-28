@@ -62,6 +62,7 @@ void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motor
 }
 
 void MotorHandler::setMotorSpeeds(const std::array<int16_t, 3> &speeds) {
+    //todo speeds is a percentage of max duty cycle like 0 is 0  1 is max - 1 is min etc)
     uint16_t maxDutyCycle = (1 << resolution) - 1;
 
     for (size_t i(0); i < speeds.size(); ++i) {

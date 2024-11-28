@@ -5,7 +5,7 @@
 #ifndef MOTORHANDLER_H
 #define MOTORHANDLER_H
 
-//#define DISABLE_LOGGING
+#define DISABLE_LOGGING
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
