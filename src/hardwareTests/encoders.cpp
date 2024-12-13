@@ -7,12 +7,12 @@
 #include "ESP32Encoder.h"
 
 // Configuration variables - set these to match the hardware setup
-constexpr uint8_t FIRST_ENCODER_PIN_A = 16;
-constexpr uint8_t FIRST_ENCODER_PIN_B = 17;
-constexpr uint8_t SECOND_ENCODER_PIN_A = 0;
-constexpr uint8_t SECOND_ENCODER_PIN_B = 0;
-constexpr uint8_t THIRD_ENCODER_PIN_A = 0;
-constexpr uint8_t THIRD_ENCODER_PIN_B = 0;
+constexpr uint8_t FIRST_ENCODER_PIN_A = 21;
+constexpr uint8_t FIRST_ENCODER_PIN_B = 19;
+constexpr uint8_t SECOND_ENCODER_PIN_A = 18;
+constexpr uint8_t SECOND_ENCODER_PIN_B = 5;
+constexpr uint8_t THIRD_ENCODER_PIN_A = 17;
+constexpr uint8_t THIRD_ENCODER_PIN_B = 16;
 constexpr uint32_t BAUD_RATE = 115200;
 
 // Program variables
