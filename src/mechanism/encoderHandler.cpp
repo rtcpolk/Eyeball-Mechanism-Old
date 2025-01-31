@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/19/2024
+// Last Modified: 01/30/2025
 
 #include "mechanism/encoderHandler.h"
 
@@ -19,9 +19,9 @@ void EncoderHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &pin
     }
 
     // Ensure params are valid
-    for (size_t i(0); i < pins.size(); ++i) {
-        for (size_t j(0); j < pins[i].size(); ++j) {
-            if (pins[i][j] > 39) {
+    for (auto pin : pins) {
+        for (unsigned char j : pin) {
+            if (j > 39) {
                 throw std::logic_error("MotorHandler::initialize - Invalid pin");
             }
         }
@@ -58,7 +58,7 @@ const std::array<int64_t, 3> &EncoderHandler::getCounts() const noexcept {
 void EncoderHandler::loop() {
     while (true) {
         EncoderHandler::instance()->updateCounts();
-        delay(100); // todo optimize this
+        delay(10); // todo optimize this
     }
 }
 

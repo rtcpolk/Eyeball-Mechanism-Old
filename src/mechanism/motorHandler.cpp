@@ -1,11 +1,32 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/24/2024
+// Last Modified: 01/30/25
 
 #include "mechanism/motorHandler.h"
 
+void MotorDriver::forward() const {
+    digitalWrite(pinA, HIGH);
+}
+
+void MotorDriver::backward() const {
+    digitalWrite(pinB, HIGH);
+}
+
+void MotorDriver::stop() const {
+    if (pinA == HIGH) {
+        digitalWrite(pinA, LOW);
+        digitalWrite(pinB, LOW);
+    } else {
+        digitalWrite(pinB, LOW);
+        digitalWrite(pinA, LOW);
+    }
+}
+
+// ===============================================================================================//
+
 // Set static inst to null and initialized to false
 MotorHandler *MotorHandler::inst = nullptr;
+bool MotorHandler::initialized = false;
 
 MotorHandler::~MotorHandler() noexcept { inst = nullptr; }
 
@@ -26,9 +47,9 @@ void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motor
     }
 
     // Ensure params are valid
-    for (size_t i(0); i < motorPins.size(); ++i) {
-        for (size_t j(0); j < motorPins[i].size(); ++j) {
-            if (motorPins[i][j] > 39) {
+    for (auto motorPin : motorPins) {
+        for (unsigned char j : motorPin) {
+            if (j > 39) {
                 throw std::logic_error("MotorHandler::initialize - Invalid PWM or DIRECTION_PIN");
             }
         }
@@ -44,16 +65,15 @@ void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motor
     resolution = PWM_RESOLUTION;
 
     for (size_t i(0); i < drivers.size(); ++i) {
-        // Set direction pin values
-        drivers[i].directionPin = motorPins[i][0];
-        pinMode(drivers[i].directionPin, OUTPUT);
-        digitalWrite(drivers[i].directionPin, LOW);
+        // Set pinA
+        drivers[i].pinA = motorPins[i][0];
+        pinMode(drivers[i].pinA, OUTPUT);
+        digitalWrite(drivers[i].pinA, LOW);
 
-        // Set pwm pin
-        drivers[i].pwmPin = motorPins[i][1];
-        ledcSetup(i, PWM_FREQUENCY, PWM_RESOLUTION);
-        ledcAttachPin(drivers[i].pwmPin, i);
-        ledcWrite(i, 0);
+        // Set pinB
+        drivers[i].pinB = motorPins[i][1];
+        pinMode(drivers[i].pinA, OUTPUT);
+        digitalWrite(drivers[i].pinA, LOW);
     }
 
     initialized = true;
@@ -61,17 +81,91 @@ void MotorHandler::initialize(const std::array<std::array<uint8_t, 2>, 3> &motor
     Log.traceln("MotorHandler::initialize - End");
 }
 
-void MotorHandler::setMotorSpeeds(const std::array<int16_t, 3> &speeds) {
-    //todo speeds is a percentage of max duty cycle like 0 is 0  1 is max - 1 is min etc)
-    uint16_t maxDutyCycle = (1 << resolution) - 1;
+void MotorHandler::help() {
+    Serial.println();
+    Serial.println("'f' : forward - spin all three motors forward");
+    Serial.println("'b' : backward - spin all three motors backward");
+    Serial.println("'s' : stop - stop all three motors");
+    Serial.println("l : loop - run the movement loop");
+    Serial.println("t : test - run the test");
+    Serial.println("'h' : help - print out a list of valid commands");
+    Serial.println("'x' : exit - exit the program and restart the ESP32");
+}
 
-    for (size_t i(0); i < speeds.size(); ++i) {
-        // Determine dutyCycle and direction
-        uint16_t dutyCycle = abs(constrain(speeds[i], -maxDutyCycle, maxDutyCycle));
-        uint8_t direction = speeds[i] >= 0 ? LOW : HIGH;
+void MotorHandler::forward() const {
+    stop();
 
-        // Set the pins
-        digitalWrite(drivers[i].directionPin, direction);
-        ledcWrite(i, dutyCycle);
+    for (auto driver : drivers) {
+        driver.forward();
     }
+}
+
+void MotorHandler::backward() const {
+    stop();
+
+    for (auto driver : drivers) {
+        driver.backward();
+    }
+}
+
+void MotorHandler::stop() const {
+    for (auto driver : drivers) {
+        driver.stop();
+    }
+}
+
+void MotorHandler::moveLoop() const {
+    stop();
+    forward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    backward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    drivers[0].forward();
+    drivers[1].forward();
+    drivers[2].backward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    drivers[0].backward();
+    drivers[1].backward();
+    drivers[2].forward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    drivers[0].forward();
+    drivers[1].forward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    drivers[0].backward();
+    drivers[1].backward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    drivers[0].forward();
+    drivers[2].forward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+
+    drivers[0].backward();
+    drivers[2].backward();
+    delay(delayTime);
+    stop();
+    delay(delayTime);
+}
+
+void MotorHandler::test() const {
+    stop();
+    //todo what tests do i want
 }

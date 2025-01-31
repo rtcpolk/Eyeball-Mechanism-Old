@@ -1,16 +1,15 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/25/2024
+// Last Modified: 01/30/25
 
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
 
-#define DISABLE_LOGGING
+//#define DISABLE_LOGGING
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <NimBLEDevice.h>
-#include <../lib/MPU6050/helper_3dmath.h>
 
 /**
  * A struct to define what to do for client events
@@ -101,13 +100,13 @@ public:
     /**
      * Continuously manage the client's connection to the server
      */
-    [[noreturn]] void loop();
+    [[noreturn]] static void loop();
 
     /**
      * Get the current quaternion
      * @return The current quaternion
      */
-    const Quaternion &getQuaternion() const;
+    static const std::array<float, 4> &getQuaternion() ;
 
     // Public Member variables - used by the callbacks
     static NimBLEAdvertisedDevice *advDevice;   // A ptr to a device with the correct UUID
@@ -127,7 +126,7 @@ private:
      *
      * @return True if successful
      */
-    bool connectToServer();
+    static bool connectToServer();
 
     // Member Variables
     static ClientHandler *inst; // Ptr to the singleton inst
@@ -135,7 +134,7 @@ private:
     static ScanCallbacks scanCallback; // Scan callback instance
     static bool initialized;    // Initialization flag
     static std::string IMUCharacteristicUUID;  // The IMU Characteristic UUID
-    static Quaternion quaternion;  // To hold the current quaternion value
+    static std::array<float, 4> quaternion; // Quaternion container : w, x, y, z
 };
 
 #endif // CLIENTHANDLER_H

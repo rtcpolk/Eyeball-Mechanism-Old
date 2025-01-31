@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/25/2024
+// Last Modified: 01/30/25
 
 #include "mechanism/clientHandler.h"
 
@@ -13,6 +13,8 @@ void ClientCallbacks::onDisconnect(NimBLEClient *disconnectedClient, int reason)
     Log.warningln("Disconnected from the server (code %d). Starting scan", reason);
     NimBLEDevice::getScan()->start(ClientHandler::scanTime);
 }
+
+//================================================================================================//
 
 void ScanCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice) {
     Log.trace("Advertised Device found: ");
@@ -33,17 +35,19 @@ void ScanCallbacks::onScanEnd(NimBLEScanResults results) {
     Log.traceln("ScanCallbacks::onScanEnd - Scan ended");
 }
 
+//================================================================================================//
+
 // Set static variables
 NimBLEAdvertisedDevice *ClientHandler::advDevice = nullptr;
-std::string ClientHandler::serviceUUID = "";
+std::string ClientHandler::serviceUUID;
 uint32_t ClientHandler::scanTime = 5 * 1000;
 bool ClientHandler::doConnect = false;
 ClientHandler *ClientHandler::inst = nullptr;
 ClientCallbacks ClientHandler::clientCallback;
 ScanCallbacks ClientHandler::scanCallback;
 bool ClientHandler::initialized = false;
-std::string ClientHandler::IMUCharacteristicUUID = "";
-Quaternion ClientHandler::quaternion;
+std::string ClientHandler::IMUCharacteristicUUID;
+std::array <float, 4> ClientHandler::quaternion;
 
 ClientHandler::~ClientHandler() { inst = nullptr; }
 
@@ -86,13 +90,13 @@ ClientHandler::notifyCallback(NimBLERemoteCharacteristic *remoteCharacteristic, 
     //todo add a buffer?
     if (remoteCharacteristic->getUUID() == BLEUUID(IMUCharacteristicUUID) && isNotify) {
         if (length == 16) {
-            memcpy(&quaternion.w, &pData[0], sizeof(float));
-            memcpy(&quaternion.x, &pData[4], sizeof(float));
-            memcpy(&quaternion.y, &pData[8], sizeof(float));
-            memcpy(&quaternion.z, &pData[12], sizeof(float));
+            memcpy(&quaternion[0], &pData[0], sizeof(float));
+            memcpy(&quaternion[1], &pData[4], sizeof(float));
+            memcpy(&quaternion[2], &pData[8], sizeof(float));
+            memcpy(&quaternion[3], &pData[12], sizeof(float));
 
-            Log.verboseln("\tQuat:\t%D\t%D\t%D\t%D", quaternion.w, quaternion.x, quaternion.y,
-                          quaternion.z);
+            Log.verboseln("\tQuat:\t%D\t%D\t%D\t%D", quaternion[0], quaternion[1], quaternion[2],
+                          quaternion[3]);
 
         } else {
             Log.warningln("ClientHandler::notifyCallback - Unexpected data length received");
@@ -102,7 +106,7 @@ ClientHandler::notifyCallback(NimBLERemoteCharacteristic *remoteCharacteristic, 
     }
 }
 
-const Quaternion &ClientHandler::getQuaternion() const {
+const std::array<float, 4> &ClientHandler::getQuaternion() {
     return quaternion;
 }
 
@@ -132,8 +136,8 @@ bool ClientHandler::connectToServer() {
 
     // Ptrs for the method
     NimBLEClient *client = nullptr;
-    NimBLERemoteService *remoteService = nullptr;
-    NimBLERemoteCharacteristic *remoteIMUCharacteristic = nullptr;
+    NimBLERemoteService *remoteService;
+    NimBLERemoteCharacteristic *remoteIMUCharacteristic;
 
     // Check if there is a client to reuse
     Log.traceln("ClientHandler::connectToServer - Checking for client reuse");

@@ -1,11 +1,11 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/25/2024
+// Last Modified: 01/30/25
 
 #ifndef ENCODERHANDLER_H
 #define ENCODERHANDLER_H
 
-#define DISABLE_LOGGING
+//#define DISABLE_LOGGING
 
 #include <Arduino.h>
 #include "ArduinoLog.h"
@@ -50,7 +50,7 @@ public:
     /**
      * Continuously update the encoder counts
      */
-    [[noreturn]] void loop();
+    [[noreturn]] static void loop();
 
 private:
     /**

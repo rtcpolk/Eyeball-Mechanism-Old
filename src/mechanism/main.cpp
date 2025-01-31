@@ -1,14 +1,13 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/25/24
+// Last Modified: 01/30/25
 
 //================================================================================================//
 
 /*
  * Welcome to the inner workings of BLINK's eyeball mechanism - the brain to the eye if you will.
  * This is the main program which first configures the program for logging and to interface with
- * the physical components of the mechanism. It then runs the general control loop. The control
- * loop...
+ * the physical components of the mechanism.
  *
  * To configure this program to interface with each of the components in the eyeball mechanism,
  * read through the following sections and set the variables accordingly. Each section configures
@@ -28,7 +27,7 @@
 #include <array>
 #include "mechanism/clientHandler.h"
 #include "mechanism/encoderHandler.h"
-#include "control/factory.h"
+#include "mechanism/motorHandler.h"
 
 /*
  * Logging
@@ -81,6 +80,7 @@ constexpr uint32_t SCAN_INTERVAL = 45;  // The scan interval in ms
 
 // Program Variables
 TaskHandle_t clientLoopHandle = nullptr;    // Ptr to the client's FreeRTOS task
+std::array <float, 4> quaternion; // Quaternion container : w, x, y, z
 
 /*
  * Encoders
@@ -95,8 +95,8 @@ constexpr uint8_t FIRST_ENCODER_PIN_A = 0; // The Channel A pin for the first en
 constexpr uint8_t FIRST_ENCODER_PIN_B = 0; // The Channel B pin for the first encoder
 constexpr uint8_t SECOND_ENCODER_PIN_A = 0;
 constexpr uint8_t SECOND_ENCODER_PIN_B = 0;
-constexpr uint8_t THIRD_ENCODER_PIN_A = 0;
-constexpr uint8_t THIRD_ENCODER_PIN_B = 0;
+constexpr uint8_t THIRD_ENCODER_PIN_A = 18;
+constexpr uint8_t THIRD_ENCODER_PIN_B = 19;
 
 // Program Variables
 constexpr std::array<std::array<uint8_t, 2>, 3> encoderPins = {FIRST_ENCODER_PIN_A,
@@ -106,6 +106,7 @@ constexpr std::array<std::array<uint8_t, 2>, 3> encoderPins = {FIRST_ENCODER_PIN
                                                                THIRD_ENCODER_PIN_A,
                                                                THIRD_ENCODER_PIN_B};
 TaskHandle_t encoderLoopHandle = nullptr;   // Ptr to the encoder's FreeRTOS task
+std::array <int64_t, 3> counts;    // Encoder count container : motorA, motorB, motorC
 
 /*
  * Configure Motors
@@ -131,6 +132,7 @@ constexpr std::array<std::array<uint8_t, 2>, 3> motorPins = {FIRST_DRIVER_DIRECT
                                                              SECOND_DRIVER_PWM_PIN,
                                                              THIRD_DRIVER_DIRECTION_PIN,
                                                              THIRD_DRIVER_PWM_PIN};
+TaskHandle_t motorTaskHandle = nullptr;   // Ptr to the MotorHandler's FreeRTOS task
 
 //================================================================================================//
 
@@ -140,6 +142,17 @@ constexpr std::array<std::array<uint8_t, 2>, 3> motorPins = {FIRST_DRIVER_DIRECT
 void restart() {
     Log.fatalln("Fatal error occurred. Restarting the ESP32");
     ESP.restart();
+}
+
+//todo make a class to handle all of these background tasks
+/**
+ * A freeRTOS task for the ClientHandler loop
+ *
+ * @param param - Any parameters to be used by the task (none)
+ */
+void clientLoopTask(void *param) {
+    Log.infoln("Starting ClientHandler loop");
+    ClientHandler::instance()->loop();
 }
 
 /**
@@ -153,12 +166,12 @@ void encoderLoopTask(void *param) {
 }
 
 /**
- * A freeRTOS task for the ClientHandler loop
+ * A freeRTOS task for the MotorHandler
  *
  * @param param - Any parameters to be used by the task (none)
  */
-void clientLoopTask(void *param) {
-    Log.infoln("Starting ClientHandler loop");
+void motorHandlerTask(void *param) {
+    Log.infoln("Starting MotorHandler task");
     ClientHandler::instance()->loop();
 }
 
@@ -167,26 +180,6 @@ void setup() {
     Serial.begin(BAUD_RATE);
     Log.begin(LOG_LEVEL, &Serial, true);
     Log.infoln("Serial and logging initialized");
-
-    // Initialize the EncoderHandler
-    try {
-        EncoderHandler::instance()->initialize(encoderPins);
-    } catch (const std::exception &ex) {
-        Log.errorln("Failed to initialize EncoderHandler - %s", ex.what());
-        restart();
-    } catch (...) {
-        Log.errorln("Failed to initialize EncoderHandler - Unknown Error");
-        restart();
-    }
-
-    // Create background task for the encoder
-    BaseType_t encoderResult = xTaskCreate(encoderLoopTask, "EncoderHandler::Loop",
-                                           2048, nullptr, 1, &encoderLoopHandle);
-
-    if (encoderResult != pdPASS) {
-        Log.errorln("Failed to create encoderLoopTask");
-        restart();
-    }
 
     // Initialize the BLE Client
     try {
@@ -201,36 +194,100 @@ void setup() {
     }
 
     // Create background task for the client
-    BaseType_t clientResult = xTaskCreate(clientLoopTask, "EncoderHandler::Loop",
-                                    2048, nullptr, 2, &encoderLoopHandle);
+    BaseType_t clientResult = xTaskCreate(clientLoopTask, "ClientHandler::Loop",
+                                          2048, nullptr, 1, &clientLoopHandle);
 
     if (clientResult != pdPASS) {
         Log.errorln("Failed to create clientLoopTask");
         restart();
     }
 
-    //todo init motorhand
-   // MotorHandler::instance()->initialize(motorPins, PWM_FREQUENCY, PWM_RESOLUTION);
+    // Initialize the EncoderHandler
+    try {
+        EncoderHandler::instance()->initialize(encoderPins);
+    } catch (const std::exception &ex) {
+        Log.errorln("Failed to initialize EncoderHandler - %s", ex.what());
+        restart();
+    } catch (...) {
+        Log.errorln("Failed to initialize EncoderHandler - Unknown Error");
+        restart();
+    }
+
+    // Create background task for the encoder
+    BaseType_t encoderResult = xTaskCreate(encoderLoopTask, "EncoderHandler::Loop",
+                                           2048, nullptr, 2, &encoderLoopHandle);
+
+    if (encoderResult != pdPASS) {
+        Log.errorln("Failed to create encoderLoopTask");
+        restart();
+    }
+
+    // Initialize the MotorHandler
+    try {
+        MotorHandler::instance()->initialize(motorPins, PWM_FREQUENCY, PWM_RESOLUTION);
+    } catch (const std::exception &ex) {
+        Log.errorln("Failed to initialize MotorHandler - %s", ex.what());
+    } catch (...) {
+        Log.errorln("Failed to initialize MotorHandler - Unknown Error");
+    }
+
+    // Create background task for the motors
+    BaseType_t motorResult = xTaskCreate(motorHandlerTask, "MotorHandler::Loop",
+                                          2048, nullptr, 3, &motorTaskHandle);
+
+    if (motorResult != pdPASS) {
+        Log.errorln("Failed to create MotorHandlerTask");
+        restart();
+    }
+
+
+    // Prompt user for first command
+    Serial.print("Enter a command or enter 'h' for help: ");
 }
 
 /**
- * This is the main loop for the program. It checks the control switches and executes the correct
- * control algorithm
+ * This is the main loop for the program. It parses serial commands and sends them to the
+ * MotorHandler
  */
-Factory factory;   // Factory instance to make control algos
 void loop() {
-    // Check the switches //todo eventually this will be dynamic w debounce (for now just dbt2)
-    std::array<uint8_t, 3> switchInput = {1, 0, 0};
+    if (Serial.available() > 0) {
+        char command = Serial.read();
 
-    try {
-        // Create the correct control algo
-        ControlAlgo controlAlgo = factory.makeControlAlgo(switchInput);
+        if (command == '\n' || command == '\r') {
+            return; // ???
+        }
 
-        // Execute the control algo
-        controlAlgo.execute();
-    } catch (const std::exception &ex) {
-        Log.errorln("Failed to create or execute control algorithm - %s", ex.what());
-    } catch (...) {
-        Log.errorln("Failed to create or execute control algorithm - Unknown Error");
+        // Execute command
+        if (command == 'h') {
+            MotorHandler::help();
+        } else if (command == 'x') {
+            if (motorTaskHandle != nullptr) {
+                vTaskDelete(motorTaskHandle);
+                motorTaskHandle = nullptr;
+            }
+            restart();
+        } else if(command == 'f') {
+            MotorHandler::instance()->forward();
+        } else if (command == 'b') {
+            MotorHandler::instance()->backward();
+        } else if (command == 's') {
+            MotorHandler::instance()->stop();
+        } else if (command == 'l') {
+            MotorHandler::instance()->moveLoop();
+        } else if (command == 't') {
+            MotorHandler::instance()->test();
+        } else {
+            Serial.println("Command not recognized");
+        }
+
+        Serial.print("Enter a command: ");
     }
+
+    // Send data over serial to ROS2
+    quaternion = ClientHandler::instance()->getQuaternion();
+    counts = EncoderHandler::instance()->getCounts();
+
+    Serial.printf("Q:\t%f\t%f\t%f\t%f\n", quaternion[0], quaternion[1], quaternion[2],
+                   quaternion[3]);
+    Serial.printf("E:\t%lld\t%lld\t%lld\n", counts[0], counts[1], counts[2]);
 }

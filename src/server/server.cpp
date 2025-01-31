@@ -1,6 +1,6 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/24/2024
+// Last Modified: 01/30/25
 
 //================================================================================================//
 
@@ -48,9 +48,9 @@
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_FATAL;    // the desired level
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_ERROR;
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_WARNING;
-// constexpr uint8_t LOG_LEVEL = LOG_LEVEL_NOTICE;
+ constexpr uint8_t LOG_LEVEL = LOG_LEVEL_NOTICE;
 // constexpr uint8_t LOG_LEVEL = LOG_LEVEL_TRACE;
-constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
+//constexpr uint8_t LOG_LEVEL = LOG_LEVEL_VERBOSE;
 constexpr uint32_t BAUD_RATE = 115200;  // The baud rate for serial communication
 
 /*
@@ -140,6 +140,10 @@ struct ServerCallbacks final : public NimBLEServerCallbacks {
     }
 };
 
+static ServerCallbacks serverCallback; // Callback instance
+
+//================================================================================================//
+
 /**
  * A struct to define what to do for characteristic events
  */
@@ -184,9 +188,7 @@ struct CharacteristicCallbacks final : public NimBLECharacteristicCallbacks {
     }
 };
 
-// Callback instances
-static ServerCallbacks serverCallback;
-static CharacteristicCallbacks characteristicCallback;
+static CharacteristicCallbacks characteristicCallback; // Callback instance
 
 //================================================================================================//
 
@@ -324,7 +326,7 @@ void packageQuaternionData() {
 
     Log.verboseln("\tQuat:\t%D\t%D\t%D\t%D", quaternion.w, quaternion.x, quaternion.y, quaternion
             .z);
-}
+} //todo do i need this? Can it be more efficient as in just sent quaternion itself
 
 /**
  * Perform the setup for the program. Creates and initializes the BLE server and MPU6050
@@ -335,6 +337,7 @@ void setup() {
     Log.begin(LOG_LEVEL, &Serial, false);
     Log.infoln("Serial and logging initialized");
 
+    pinMode(2, OUTPUT);
     // Set up the server
     try {
         setupBLEServer();
@@ -346,18 +349,23 @@ void setup() {
         restart();
     }
 
-    // Set up the IMU
+    NimBLEAddress macAddress = NimBLEDevice::getAddress();
+    Log.infoln("Server MAC Address: %s", macAddress.toString().c_str());
+
+
+    //Set up the IMU
     try {
         setupIMU();
     } catch (const std::exception &ex) {
-        Log.errorln("Failed to setup IMU - %s", ex.what());
+        Log.errorln("Failed to set up IMU - %s", ex.what());
         restart();
     } catch (...) {
-        Log.errorln("Failed to setup IMU - Unknown Error");
+        Log.errorln("Failed to set up IMU - Unknown Error");
         restart();
     }
 
     Log.infoln("Beginning main loop");
+    digitalWrite(2,HIGH);
 }
 
 /**
@@ -366,6 +374,12 @@ void setup() {
  * then notifies the client. It handles reestablishing connections and disconnections
  */
 void loop() {
+
+    if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) {
+        packageQuaternionData();
+        Log.infoln("%D,%D,%D,%D", quaternion.w, quaternion.x, quaternion.y, quaternion
+                .z);
+    }
     try {
         // Notify the client that the IMU data has changed
         if (connected) {

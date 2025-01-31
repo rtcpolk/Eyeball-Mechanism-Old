@@ -1,19 +1,25 @@
 // Author: Robert Polk
 // Copyright (c) 2024 BLINK. All rights reserved.
-// Last Modified: 11/24/2024
+// Last Modified: 01/30/25
 
 #ifndef MOTORHANDLER_H
 #define MOTORHANDLER_H
 
-#define DISABLE_LOGGING
+//#define DISABLE_LOGGING
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <array>
 
 struct MotorDriver {
-    uint8_t pwmPin; // PWM signal pin connected to IN1
-    uint8_t directionPin;   // Direction signal pin connected to IN2
+    // Movement methods
+    void forward() const;
+    void backward() const;
+    void stop() const;
+
+    // Member variables
+    uint8_t pinA; // PWM signal pin connected to IN1
+    uint8_t pinB;   // Direction signal pin connected to IN2
 };
 
 class MotorHandler {
@@ -39,11 +45,16 @@ public:
     &PWM_FREQUENCY, const uint8_t &PWM_RESOLUTION);
 
     /**
-     * Set the speeds of the 3 motors
-     *
-     * @param speeds - An array holding the pwm values
-     */
-    void setMotorSpeeds(const std::array<int16_t, 3> &speeds);
+    * Print out a list of valid commands with descriptions
+    */
+    static void help() ;
+
+    // Movement methods
+    void forward() const;
+    void backward() const;
+    void stop() const;
+    void moveLoop() const;
+    void test() const;
 
 private:
     // Primary constructor
@@ -54,6 +65,7 @@ private:
     static bool initialized;    // Initialization flag
     std::array<MotorDriver, 3> drivers; // Array to hold the motor drivers
     uint8_t resolution; // The resolution of the PWM duty cycle
+    uint32_t delayTime; // The delay time during the movement loop
 };
 
 #endif // MOTORHANDLER_H
